@@ -3,14 +3,15 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Timer - Radicular Totem</title>
+    <title>Timer Rotten Blood - Radicular Totem</title>
     <style>
         :root {
             --bg-color: #1a1a1a;
             --text-color: #e0e0e0;
-            --highlight: #ff3333; 
-            --warning: #ffcc00; 
-            --inactive: #444;
+            --highlight: #ff3333;
+            --warning: #ffcc00;
+            --inactive: #2a2a2a;
+            --border-color: #333;
         }
 
         body {
@@ -21,14 +22,20 @@
             flex-direction: column;
             align-items: center;
             justify-content: center;
-            height: 100vh;
+            min-height: 100vh;
             margin: 0;
-            overflow: hidden;
-            user-select: none; 
+            padding: 20px;
+            box-sizing: border-box;
+            user-select: none;
+            gap: 20px;
         }
 
-        h1 { margin-bottom: 10px; font-size: 1.5rem; text-align: center; }
-        p { margin-bottom: 20px; color: #888; font-size: 0.9rem; text-align: center; }
+        .header {
+            text-align: center;
+            z-index: 10;
+        }
+        h1 { margin: 0 0 5px 0; font-size: 2rem; }
+        p { margin: 0; color: #888; font-size: 1rem; }
 
         .compass-container {
             display: grid;
@@ -36,24 +43,23 @@
                 ". north ."
                 "left center right"
                 ". south .";
-            gap: 10px;
-            margin-bottom: 30px;
-            transform: scale(1.5);
+            gap: 15px;
+            margin: 20px 0;
         }
 
         .arrow {
-            width: 60px;
-            height: 60px;
+            width: 90px;
+            height: 90px;
             display: flex;
             align-items: center;
             justify-content: center;
-            background-color: #2a2a2a;
-            border-radius: 8px;
+            background-color: var(--inactive);
+            border-radius: 12px;
             font-weight: bold;
-            font-size: 2rem;
-            color: var(--inactive);
+            font-size: 3rem;
+            color: #555;
             transition: all 0.2s ease;
-            border: 2px solid #333;
+            border: 3px solid var(--border-color);
         }
 
         .north { grid-area: north; }
@@ -66,9 +72,9 @@
             display: flex;
             align-items: center;
             justify-content: center;
-            width: 60px;
-            height: 60px;
-            font-size: 1.5rem;
+            width: 90px;
+            height: 90px;
+            font-size: 2rem;
             color: #fff;
             font-weight: bold;
         }
@@ -76,24 +82,24 @@
         .arrow.active {
             background-color: var(--highlight);
             color: white;
-            box-shadow: 0 0 15px var(--highlight);
-            transform: scale(1.1);
+            box-shadow: 0 0 20px var(--highlight);
+            transform: scale(1.05);
             border-color: #fff;
+            z-index: 2;
         }
 
         .arrow.active.warning {
             border-color: var(--warning);
-            box-shadow: 0 0 20px var(--warning);
+            box-shadow: 0 0 25px var(--warning);
         }
 
         .progress-container {
-            width: 80%;
-            max-width: 300px;
-            height: 10px;
+            width: 100%;
+            max-width: 400px;
+            height: 12px;
             background-color: #333;
-            border-radius: 5px;
+            border-radius: 6px;
             overflow: hidden;
-            margin-bottom: 20px;
         }
 
         .progress-bar {
@@ -111,45 +117,42 @@
 
         .controls {
             display: flex;
-            gap: 15px;
+            gap: 20px;
+            margin-top: 10px;
         }
 
         button {
-            padding: 15px 30px;
-            font-size: 1rem;
+            padding: 18px 36px;
+            font-size: 1.1rem;
             border: none;
-            border-radius: 5px;
+            border-radius: 8px;
             cursor: pointer;
             font-weight: bold;
             text-transform: uppercase;
-            transition: opacity 0.2s;
-        }
-
-        .btn-start {
-            background-color: #28a745;
-            color: white;
-        }
-        
-        .btn-stop {
-            background-color: #dc3545;
+            transition: transform 0.1s;
             color: white;
         }
 
-        button:active { transform: scale(0.95); }
+        .btn-start { background-color: #28a745; box-shadow: 0 4px 0 #1e7e34; }
+        .btn-stop { background-color: #dc3545; box-shadow: 0 4px 0 #bd2130; }
+
+        button:active { 
+            transform: translateY(4px); 
+            box-shadow: none;
+        }
 
         .instruction {
-            margin-top: 20px;
-            padding: 10px;
-            background: #333;
-            border-radius: 4px;
-            max-width: 400px;
+            padding: 15px;
+            background: #2a2a2a;
+            border-radius: 8px;
+            max-width: 450px;
             text-align: center;
-            border-left: 4px solid #ffc107;
-            font-size: 0.9rem;
+            border-left: 5px solid #ffc107;
+            font-size: 0.95rem;
+            line-height: 1.5;
         }
         
         .sound-status {
-            margin-top: 5px;
             font-size: 0.8rem;
             color: #666;
         }
@@ -157,8 +160,10 @@
 </head>
 <body>
 
-    <h1>Rotten Blood Timer</h1>
-    <p>Radicular Totem - Petrufactory</p>
+    <div class="header">
+        <h1>Rotten Blood Timer</h1>
+        <p>Radicular Totem - Petrufactory</p>
+    </div>
 
     <div class="compass-container">
         <div class="arrow north" id="north">⬆</div>
@@ -179,16 +184,14 @@
 
     <div class="instruction">
         <strong>Como usar:</strong><br>
-        Assim que o totem bater na <b>ESQUERDA</b>, clique no botão VERDE.<br>
+        Assim que o totem bater na <b>ESQUERDA</b>, clique em START.<br>
         O timer mostrará onde será o <b>PRÓXIMO</b> hit.<br>
-        <span style="color: #ffcc00">⚠ Um som tocará 1s antes de mudar.</span>
+        <span style="color: #ffcc00">⚠ Bip sonoro 1s antes de mudar.</span>
     </div>
     
     <div class="sound-status" id="soundStatus">Som pronto</div>
 
     <script>
-        const beepSound = new Audio("data:audio/wav;base64,UklGRl9vT1BXQVZFZm10IBAAAAABAAEAQB8AAEAfAAABAAgAZGF0YU");
-        
         const audioCtx = new (window.AudioContext || window.webkitAudioContext)();
         
         function playBeep() {
@@ -205,21 +208,18 @@
             
             oscillator.start();
             
-            
             gainNode.gain.setValueAtTime(0.1, audioCtx.currentTime);
             gainNode.gain.exponentialRampToValueAtTime(0.00001, audioCtx.currentTime + 0.15);
             
             oscillator.stop(audioCtx.currentTime + 0.15);
         }
 
-       
-        const cycleTime = 5000;
+        const cycleTime = 5000; 
         const sequence = ['north', 'right', 'south', 'left'];
         
         let startTime = null;
         let timerInterval = null;
         let isRunning = false;
-        
         
         let lastBeepIndex = -1; 
 
@@ -260,14 +260,10 @@
         function update() {
             const now = Date.now();
             const elapsed = now - startTime;
-
             const remaining = cycleTime - (elapsed % cycleTime);
-            
             const totalCycles = Math.floor(elapsed / cycleTime);
-            
             const sequenceIndex = totalCycles % 4;
             const currentDirection = sequence[sequenceIndex];
-
             const isWarningPhase = remaining <= 1000;
 
             if (isWarningPhase) {
