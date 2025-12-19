@@ -1,0 +1,197 @@
+:root {
+    --bg-color: #1a1a1a;
+    --text-color: #e0e0e0;
+    --highlight: #ff3333;
+    --highlight-boss: #b300ff;
+    --warning: #ffcc00;
+    --inactive: #2a2a2a;
+    --border-color: #333;
+}
+
+body {
+    font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+    background-color: var(--bg-color);
+    color: var(--text-color);
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    min-height: 100vh;
+    margin: 0;
+    padding: 20px;
+    box-sizing: border-box;
+    user-select: none;
+    transition: background-color 0.2s;
+}
+
+/* CLASSE PARA O PISCAR VERMELHO */
+body.flash-red {
+    background-color: #8a0000 !important;
+}
+
+/* ABAS */
+.tabs {
+    display: flex;
+    gap: 10px;
+    margin-bottom: 30px;
+    background: #222;
+    padding: 5px;
+    border-radius: 10px;
+    box-shadow: 0 4px 6px rgba(0,0,0,0.3);
+}
+
+.tab-btn {
+    padding: 12px 24px;
+    background: transparent;
+    color: #888;
+    border: none;
+    cursor: pointer;
+    font-size: 1rem;
+    font-weight: bold;
+    border-radius: 8px;
+    transition: all 0.2s;
+}
+
+.tab-btn:hover {
+    color: #fff;
+    background: rgba(255,255,255,0.05);
+}
+
+.tab-btn.active {
+    background: #333;
+    color: #fff;
+    box-shadow: 0 2px 4px rgba(0,0,0,0.2);
+    border: 1px solid #444;
+}
+
+.tab-content {
+    display: none;
+    flex-direction: column;
+    align-items: center;
+    width: 100%;
+    max-width: 600px;
+}
+
+.tab-content.active {
+    display: flex;
+}
+
+h1 { margin: 0 0 5px 0; font-size: 2rem; text-align: center; }
+p { margin: 0; color: #888; font-size: 1rem; text-align: center; margin-bottom: 20px; }
+
+.controls {
+    display: flex;
+    gap: 20px;
+    margin-top: 20px;
+}
+
+button {
+    padding: 18px 36px;
+    font-size: 1.1rem;
+    border: none;
+    border-radius: 8px;
+    cursor: pointer;
+    font-weight: bold;
+    text-transform: uppercase;
+    transition: transform 0.1s;
+    color: white;
+    min-width: 140px;
+}
+
+.btn-start { background-color: #28a745; box-shadow: 0 4px 0 #1e7e34; }
+.btn-stop { background-color: #dc3545; box-shadow: 0 4px 0 #bd2130; }
+
+button:active { transform: translateY(4px); box-shadow: none; }
+
+.progress-container {
+    width: 100%;
+    max-width: 400px;
+    height: 12px;
+    background-color: #333;
+    border-radius: 6px;
+    overflow: hidden;
+    margin-top: 20px;
+}
+
+.progress-bar {
+    height: 100%;
+    width: 100%;
+    transform-origin: left;
+    transform: scaleX(0);
+    transition: background-color 0.2s;
+}
+
+.instruction {
+    padding: 15px;
+    background: #2a2a2a;
+    border-radius: 8px;
+    max-width: 450px;
+    text-align: center;
+    border-left: 5px solid #ffc107;
+    font-size: 0.95rem;
+    line-height: 1.5;
+    margin-top: 30px;
+}
+
+/* TOTEM */
+.compass-container {
+    display: grid;
+    grid-template-areas:
+        ". north ."
+        "left center right"
+        ". south .";
+    gap: 15px;
+    margin: 20px 0;
+}
+
+.arrow {
+    width: 90px; height: 90px;
+    display: flex; align-items: center; justify-content: center;
+    background-color: var(--inactive);
+    border-radius: 12px;
+    font-weight: bold; font-size: 3rem;
+    color: #555;
+    border: 3px solid var(--border-color);
+}
+
+.north { grid-area: north; }
+.south { grid-area: south; }
+.left { grid-area: left; }
+.right { grid-area: right; }
+
+.center-timer {
+    grid-area: center;
+    display: flex; align-items: center; justify-content: center;
+    width: 90px; height: 90px;
+    font-size: 2rem; color: #fff; font-weight: bold;
+}
+
+.arrow.active {
+    background-color: var(--highlight);
+    color: white;
+    box-shadow: 0 0 20px var(--highlight);
+    transform: scale(1.05);
+    border-color: #fff;
+    z-index: 2;
+}
+
+.arrow.active.warning, .boss-timer-display.warning {
+    border-color: var(--warning);
+    box-shadow: 0 0 25px var(--warning);
+    color: var(--warning);
+}
+
+/* BOSS */
+.boss-timer-display {
+    font-size: 6rem;
+    font-weight: bold;
+    color: #fff;
+    background: #222;
+    padding: 20px 60px;
+    border-radius: 20px;
+    border: 4px solid #444;
+    margin: 20px 0;
+    font-variant-numeric: tabular-nums;
+    text-shadow: 0 0 20px rgba(0,0,0,0.5);
+}
+
+.boss-progress { background-color: var(--highlight-boss); }

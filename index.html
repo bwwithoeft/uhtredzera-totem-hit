@@ -3,311 +3,65 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Timer Rotten Blood - Radicular Totem</title>
-    <style>
-        :root {
-            --bg-color: #1a1a1a;
-            --text-color: #e0e0e0;
-            --highlight: #ff3333;
-            --warning: #ffcc00;
-            --inactive: #2a2a2a;
-            --border-color: #333;
-        }
-
-        body {
-            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
-            background-color: var(--bg-color);
-            color: var(--text-color);
-            display: flex;
-            flex-direction: column;
-            align-items: center;
-            justify-content: center;
-            min-height: 100vh;
-            margin: 0;
-            padding: 20px;
-            box-sizing: border-box;
-            user-select: none;
-            gap: 20px;
-        }
-
-        .header {
-            text-align: center;
-            z-index: 10;
-        }
-        h1 { margin: 0 0 5px 0; font-size: 2rem; }
-        p { margin: 0; color: #888; font-size: 1rem; }
-
-        .compass-container {
-            display: grid;
-            grid-template-areas:
-                ". north ."
-                "left center right"
-                ". south .";
-            gap: 15px;
-            margin: 20px 0;
-        }
-
-        .arrow {
-            width: 90px;
-            height: 90px;
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            background-color: var(--inactive);
-            border-radius: 12px;
-            font-weight: bold;
-            font-size: 3rem;
-            color: #555;
-            transition: all 0.2s ease;
-            border: 3px solid var(--border-color);
-        }
-
-        .north { grid-area: north; }
-        .south { grid-area: south; }
-        .left { grid-area: left; }
-        .right { grid-area: right; }
-        
-        .center-timer {
-            grid-area: center;
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            width: 90px;
-            height: 90px;
-            font-size: 2rem;
-            color: #fff;
-            font-weight: bold;
-        }
-
-        .arrow.active {
-            background-color: var(--highlight);
-            color: white;
-            box-shadow: 0 0 20px var(--highlight);
-            transform: scale(1.05);
-            border-color: #fff;
-            z-index: 2;
-        }
-
-        .arrow.active.warning {
-            border-color: var(--warning);
-            box-shadow: 0 0 25px var(--warning);
-        }
-
-        .progress-container {
-            width: 100%;
-            max-width: 400px;
-            height: 12px;
-            background-color: #333;
-            border-radius: 6px;
-            overflow: hidden;
-        }
-
-        .progress-bar {
-            height: 100%;
-            width: 100%;
-            background-color: var(--highlight);
-            transform-origin: left;
-            transform: scaleX(0);
-            transition: background-color 0.2s;
-        }
-        
-        .progress-bar.warning-state {
-            background-color: var(--warning);
-        }
-
-        .controls {
-            display: flex;
-            gap: 20px;
-            margin-top: 10px;
-        }
-
-        button {
-            padding: 18px 36px;
-            font-size: 1.1rem;
-            border: none;
-            border-radius: 8px;
-            cursor: pointer;
-            font-weight: bold;
-            text-transform: uppercase;
-            transition: transform 0.1s;
-            color: white;
-        }
-
-        .btn-start { background-color: #28a745; box-shadow: 0 4px 0 #1e7e34; }
-        .btn-stop { background-color: #dc3545; box-shadow: 0 4px 0 #bd2130; }
-
-        button:active { 
-            transform: translateY(4px); 
-            box-shadow: none;
-        }
-
-        .instruction {
-            padding: 15px;
-            background: #2a2a2a;
-            border-radius: 8px;
-            max-width: 450px;
-            text-align: center;
-            border-left: 5px solid #ffc107;
-            font-size: 0.95rem;
-            line-height: 1.5;
-        }
-        
-        .sound-status {
-            font-size: 0.8rem;
-            color: #666;
-        }
-    </style>
+    <title>Rotten Blood Tools - Final</title>
+    <link rel="stylesheet" href="style.css">
 </head>
 <body>
 
-    <div class="header">
+    <div class="tabs">
+        <button class="tab-btn active" onclick="switchTab('totem')">Radicular Totem</button>
+        <button class="tab-btn" onclick="switchTab('boss')">Boss - 1MIN30</button>
+    </div>
+
+    <div id="tab-totem" class="tab-content active">
         <h1>Rotten Blood Timer</h1>
         <p>Radicular Totem - Petrufactory</p>
+
+        <div class="compass-container">
+            <div class="arrow north" id="north">⬆</div>
+            <div class="arrow left" id="left">⬅</div>
+            <div class="center-timer" id="totem-countdown">0.0</div>
+            <div class="arrow right" id="right">➡</div>
+            <div class="arrow south" id="south">⬇</div>
+        </div>
+
+        <div class="progress-container">
+            <div class="progress-bar" id="totem-progress" style="background-color: var(--highlight);"></div>
+        </div>
+
+        <div class="controls">
+            <button class="btn-start" onclick="startTotem()">Start (ALAVANCA)</button>
+            <button class="btn-stop" onclick="stopTotem()">Stop/Reset</button>
+        </div>
+
+        <div class="instruction">
+            <strong>Mecânica Totem:</strong><br>
+            Ao bater na ESQUERDA, clique START.<br>
+            Ciclo de 5 segundos.
+        </div>
     </div>
 
-    <div class="compass-container">
-        <div class="arrow north" id="north">⬆</div>
-        <div class="arrow left" id="left">⬅</div>
-        <div class="center-timer" id="countdown">0.0</div>
-        <div class="arrow right" id="right">➡</div>
-        <div class="arrow south" id="south">⬇</div>
+    <div id="tab-boss" class="tab-content">
+        <h1>Boss Timer</h1>
+
+        <div class="boss-timer-display" id="boss-countdown">01:30</div>
+
+        <div class="progress-container">
+            <div class="progress-bar boss-progress" id="boss-progress"></div>
+        </div>
+
+        <div class="controls">
+            <button class="btn-start" onclick="startBoss()">Start (Alavanca)</button>
+            <button class="btn-stop" onclick="stopBoss()">Stop/Reset</button>
+        </div>
+
+        <div class="instruction" style="border-left-color: var(--highlight-boss);">
+            <strong>Mecânica Boss (1m 30s):</strong><br>
+            Ao puxar a alavanca, clique START.<br>
+            Contagem de voz nos últimos 10s.<br>
+        </div>
     </div>
 
-    <div class="progress-container">
-        <div class="progress-bar" id="progress"></div>
-    </div>
-
-    <div class="controls">
-        <button class="btn-start" onclick="startTimer()">START</button>
-        <button class="btn-stop" onclick="stopTimer()">STOP/RESET</button>
-    </div>
-
-    <div class="instruction">
-        <strong>Como usar:</strong><br>
-        Assim que o totem bater na <b>ESQUERDA</b>, clique em START.<br>
-        O timer mostrará onde será o <b>PRÓXIMO</b> hit.<br>
-        <span style="color: #ffcc00">⚠ Bip sonoro 1s antes de mudar.</span>
-    </div>
-    
-    <div class="sound-status" id="soundStatus">Som pronto</div>
-
-    <script>
-        const audioCtx = new (window.AudioContext || window.webkitAudioContext)();
-        
-        function playBeep() {
-            if (audioCtx.state === 'suspended') {
-                audioCtx.resume();
-            }
-            const oscillator = audioCtx.createOscillator();
-            const gainNode = audioCtx.createGain();
-            
-            oscillator.type = 'sine';
-            oscillator.frequency.setValueAtTime(880, audioCtx.currentTime); 
-            oscillator.connect(gainNode);
-            gainNode.connect(audioCtx.destination);
-            
-            oscillator.start();
-            
-            gainNode.gain.setValueAtTime(0.1, audioCtx.currentTime);
-            gainNode.gain.exponentialRampToValueAtTime(0.00001, audioCtx.currentTime + 0.15);
-            
-            oscillator.stop(audioCtx.currentTime + 0.15);
-        }
-
-        const cycleTime = 5000; 
-        const sequence = ['north', 'right', 'south', 'left'];
-        
-        let startTime = null;
-        let timerInterval = null;
-        let isRunning = false;
-        
-        let lastBeepIndex = -1; 
-
-        const countdownEl = document.getElementById('countdown');
-        const progressBar = document.getElementById('progress');
-        const soundStatus = document.getElementById('soundStatus');
-        const arrows = {
-            north: document.getElementById('north'),
-            right: document.getElementById('right'),
-            south: document.getElementById('south'),
-            left: document.getElementById('left')
-        };
-
-        function resetVisuals() {
-            Object.values(arrows).forEach(el => {
-                el.classList.remove('active');
-                el.classList.remove('warning');
-            });
-            countdownEl.textContent = "0.0";
-            progressBar.style.transform = `scaleX(0)`;
-            progressBar.classList.remove('warning-state');
-        }
-
-        function highlightDirection(direction, isWarning) {
-            Object.values(arrows).forEach(el => {
-                el.classList.remove('active');
-                el.classList.remove('warning');
-            });
-
-            if(arrows[direction]) {
-                arrows[direction].classList.add('active');
-                if (isWarning) {
-                    arrows[direction].classList.add('warning');
-                }
-            }
-        }
-
-        function update() {
-            const now = Date.now();
-            const elapsed = now - startTime;
-            const remaining = cycleTime - (elapsed % cycleTime);
-            const totalCycles = Math.floor(elapsed / cycleTime);
-            const sequenceIndex = totalCycles % 4;
-            const currentDirection = sequence[sequenceIndex];
-            const isWarningPhase = remaining <= 1000;
-
-            if (isWarningPhase) {
-                if (lastBeepIndex !== totalCycles) {
-                    playBeep();
-                    lastBeepIndex = totalCycles;
-                }
-                progressBar.classList.add('warning-state');
-            } else {
-                progressBar.classList.remove('warning-state');
-            }
-
-            highlightDirection(currentDirection, isWarningPhase);
-            countdownEl.textContent = (remaining / 1000).toFixed(1);
-            
-            const progressPct = (cycleTime - remaining) / cycleTime;
-            progressBar.style.transform = `scaleX(${progressPct})`;
-        }
-
-        function startTimer() {
-            if (audioCtx.state === 'suspended') {
-                audioCtx.resume();
-            }
-
-            if (isRunning) stopTimer();
-            
-            isRunning = true;
-            startTime = Date.now();
-            lastBeepIndex = -1; 
-            
-            highlightDirection('north', false); 
-            
-            timerInterval = setInterval(update, 50);
-            soundStatus.textContent = "Timer rodando (Som Ativo)";
-            soundStatus.style.color = "#28a745";
-        }
-
-        function stopTimer() {
-            isRunning = false;
-            clearInterval(timerInterval);
-            resetVisuals();
-            soundStatus.textContent = "Timer parado";
-            soundStatus.style.color = "#666";
-        }
-    </script>
+    <script src="script.js"></script>
 </body>
 </html>
