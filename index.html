@@ -1,0 +1,317 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Timer - Radicular Totem</title>
+    <style>
+        :root {
+            --bg-color: #1a1a1a;
+            --text-color: #e0e0e0;
+            --highlight: #ff3333; 
+            --warning: #ffcc00; 
+            --inactive: #444;
+        }
+
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            background-color: var(--bg-color);
+            color: var(--text-color);
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            height: 100vh;
+            margin: 0;
+            overflow: hidden;
+            user-select: none; 
+        }
+
+        h1 { margin-bottom: 10px; font-size: 1.5rem; text-align: center; }
+        p { margin-bottom: 20px; color: #888; font-size: 0.9rem; text-align: center; }
+
+        .compass-container {
+            display: grid;
+            grid-template-areas:
+                ". north ."
+                "left center right"
+                ". south .";
+            gap: 10px;
+            margin-bottom: 30px;
+            transform: scale(1.5);
+        }
+
+        .arrow {
+            width: 60px;
+            height: 60px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            background-color: #2a2a2a;
+            border-radius: 8px;
+            font-weight: bold;
+            font-size: 2rem;
+            color: var(--inactive);
+            transition: all 0.2s ease;
+            border: 2px solid #333;
+        }
+
+        .north { grid-area: north; }
+        .south { grid-area: south; }
+        .left { grid-area: left; }
+        .right { grid-area: right; }
+        
+        .center-timer {
+            grid-area: center;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            width: 60px;
+            height: 60px;
+            font-size: 1.5rem;
+            color: #fff;
+            font-weight: bold;
+        }
+
+        .arrow.active {
+            background-color: var(--highlight);
+            color: white;
+            box-shadow: 0 0 15px var(--highlight);
+            transform: scale(1.1);
+            border-color: #fff;
+        }
+
+        .arrow.active.warning {
+            border-color: var(--warning);
+            box-shadow: 0 0 20px var(--warning);
+        }
+
+        .progress-container {
+            width: 80%;
+            max-width: 300px;
+            height: 10px;
+            background-color: #333;
+            border-radius: 5px;
+            overflow: hidden;
+            margin-bottom: 20px;
+        }
+
+        .progress-bar {
+            height: 100%;
+            width: 100%;
+            background-color: var(--highlight);
+            transform-origin: left;
+            transform: scaleX(0);
+            transition: background-color 0.2s;
+        }
+        
+        .progress-bar.warning-state {
+            background-color: var(--warning);
+        }
+
+        .controls {
+            display: flex;
+            gap: 15px;
+        }
+
+        button {
+            padding: 15px 30px;
+            font-size: 1rem;
+            border: none;
+            border-radius: 5px;
+            cursor: pointer;
+            font-weight: bold;
+            text-transform: uppercase;
+            transition: opacity 0.2s;
+        }
+
+        .btn-start {
+            background-color: #28a745;
+            color: white;
+        }
+        
+        .btn-stop {
+            background-color: #dc3545;
+            color: white;
+        }
+
+        button:active { transform: scale(0.95); }
+
+        .instruction {
+            margin-top: 20px;
+            padding: 10px;
+            background: #333;
+            border-radius: 4px;
+            max-width: 400px;
+            text-align: center;
+            border-left: 4px solid #ffc107;
+            font-size: 0.9rem;
+        }
+        
+        .sound-status {
+            margin-top: 5px;
+            font-size: 0.8rem;
+            color: #666;
+        }
+    </style>
+</head>
+<body>
+
+    <h1>Rotten Blood Timer</h1>
+    <p>Radicular Totem - Petrufactory</p>
+
+    <div class="compass-container">
+        <div class="arrow north" id="north">⬆</div>
+        <div class="arrow left" id="left">⬅</div>
+        <div class="center-timer" id="countdown">0.0</div>
+        <div class="arrow right" id="right">➡</div>
+        <div class="arrow south" id="south">⬇</div>
+    </div>
+
+    <div class="progress-container">
+        <div class="progress-bar" id="progress"></div>
+    </div>
+
+    <div class="controls">
+        <button class="btn-start" onclick="startTimer()">START</button>
+        <button class="btn-stop" onclick="stopTimer()">STOP/RESET</button>
+    </div>
+
+    <div class="instruction">
+        <strong>Como usar:</strong><br>
+        Assim que o totem bater na <b>ESQUERDA</b>, clique no botão VERDE.<br>
+        O timer mostrará onde será o <b>PRÓXIMO</b> hit.<br>
+        <span style="color: #ffcc00">⚠ Um som tocará 1s antes de mudar.</span>
+    </div>
+    
+    <div class="sound-status" id="soundStatus">Som pronto</div>
+
+    <script>
+        const beepSound = new Audio("data:audio/wav;base64,UklGRl9vT1BXQVZFZm10IBAAAAABAAEAQB8AAEAfAAABAAgAZGF0YU");
+        
+        const audioCtx = new (window.AudioContext || window.webkitAudioContext)();
+        
+        function playBeep() {
+            if (audioCtx.state === 'suspended') {
+                audioCtx.resume();
+            }
+            const oscillator = audioCtx.createOscillator();
+            const gainNode = audioCtx.createGain();
+            
+            oscillator.type = 'sine';
+            oscillator.frequency.setValueAtTime(880, audioCtx.currentTime); 
+            oscillator.connect(gainNode);
+            gainNode.connect(audioCtx.destination);
+            
+            oscillator.start();
+            
+            
+            gainNode.gain.setValueAtTime(0.1, audioCtx.currentTime);
+            gainNode.gain.exponentialRampToValueAtTime(0.00001, audioCtx.currentTime + 0.15);
+            
+            oscillator.stop(audioCtx.currentTime + 0.15);
+        }
+
+       
+        const cycleTime = 5000;
+        const sequence = ['north', 'right', 'south', 'left'];
+        
+        let startTime = null;
+        let timerInterval = null;
+        let isRunning = false;
+        
+        
+        let lastBeepIndex = -1; 
+
+        const countdownEl = document.getElementById('countdown');
+        const progressBar = document.getElementById('progress');
+        const soundStatus = document.getElementById('soundStatus');
+        const arrows = {
+            north: document.getElementById('north'),
+            right: document.getElementById('right'),
+            south: document.getElementById('south'),
+            left: document.getElementById('left')
+        };
+
+        function resetVisuals() {
+            Object.values(arrows).forEach(el => {
+                el.classList.remove('active');
+                el.classList.remove('warning');
+            });
+            countdownEl.textContent = "0.0";
+            progressBar.style.transform = `scaleX(0)`;
+            progressBar.classList.remove('warning-state');
+        }
+
+        function highlightDirection(direction, isWarning) {
+            Object.values(arrows).forEach(el => {
+                el.classList.remove('active');
+                el.classList.remove('warning');
+            });
+
+            if(arrows[direction]) {
+                arrows[direction].classList.add('active');
+                if (isWarning) {
+                    arrows[direction].classList.add('warning');
+                }
+            }
+        }
+
+        function update() {
+            const now = Date.now();
+            const elapsed = now - startTime;
+
+            const remaining = cycleTime - (elapsed % cycleTime);
+            
+            const totalCycles = Math.floor(elapsed / cycleTime);
+            
+            const sequenceIndex = totalCycles % 4;
+            const currentDirection = sequence[sequenceIndex];
+
+            const isWarningPhase = remaining <= 1000;
+
+            if (isWarningPhase) {
+                if (lastBeepIndex !== totalCycles) {
+                    playBeep();
+                    lastBeepIndex = totalCycles;
+                }
+                progressBar.classList.add('warning-state');
+            } else {
+                progressBar.classList.remove('warning-state');
+            }
+
+            highlightDirection(currentDirection, isWarningPhase);
+            countdownEl.textContent = (remaining / 1000).toFixed(1);
+            
+            const progressPct = (cycleTime - remaining) / cycleTime;
+            progressBar.style.transform = `scaleX(${progressPct})`;
+        }
+
+        function startTimer() {
+            if (audioCtx.state === 'suspended') {
+                audioCtx.resume();
+            }
+
+            if (isRunning) stopTimer();
+            
+            isRunning = true;
+            startTime = Date.now();
+            lastBeepIndex = -1; 
+            
+            highlightDirection('north', false); 
+            
+            timerInterval = setInterval(update, 50);
+            soundStatus.textContent = "Timer rodando (Som Ativo)";
+            soundStatus.style.color = "#28a745";
+        }
+
+        function stopTimer() {
+            isRunning = false;
+            clearInterval(timerInterval);
+            resetVisuals();
+            soundStatus.textContent = "Timer parado";
+            soundStatus.style.color = "#666";
+        }
+    </script>
+</body>
+</html>
