@@ -49,7 +49,7 @@ window.switchTab = function(tabName) {
 };
 
 // --- LÓGICA DO TOTEM ---
-var totemCycle = 5000; 
+var totemCycle = 5500; 
 var sequence = ['north', 'right', 'south', 'left'];
 var totemStart = null;
 var totemInterval = null;
@@ -208,4 +208,5 @@ window.stopBoss = function() {
     bossBar.style.transform = "scaleX(0)";
     bossEl.style.color = "#fff";
     bossEl.style.borderColor = "#444";
+
 };
