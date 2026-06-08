@@ -235,21 +235,25 @@ window.stopBoss = function() {
 };
 
 // ==========================================
-// 5. MECÂNICA RARE CHECKER (SINCRO HORÁRIO ATUAL)
+// 5. MECÂNICA RARE CHECKER (AGENDAMENTO MANUAL)
 // ==========================================
 var rareInterval = null;
 var rareSchedule = [];
 var nextRareIndex = 0;
 
-function generateScheduleFromNow() {
+function generateScheduleFromInput(timeStr) {
     var schedule = [];
+    var parts = timeStr.split(":");
+    var baseHour = parseInt(parts[0], 10);
+    var baseMin = parseInt(parts[1], 10);
+    
     var now = new Date();
     
-    // Instancia o timestamp inicial adicionando exatamente 10 minutos à hora atual do clique
-    var loopTime = new Date(now.getTime());
+    // Instancia o timestamp inicial fixado no dia atual com a hora digitada
+    var loopTime = new Date(now.getFullYear(), now.getMonth(), now.getDate(), baseHour, baseMin, 0, 0);
+    
+    // Adiciona os primeiros 10 minutos
     loopTime.setMinutes(loopTime.getMinutes() + 10);
-    loopTime.setSeconds(0);
-    loopTime.setMilliseconds(0);
     
     var currentDay = now.getDate();
     
@@ -316,14 +320,26 @@ function checkRareTime() {
 
 window.startRareCheck = function() {
     initAudio();
-    window.stopRareCheck(); // Limpa instâncias ou lógicas rodando em paralelo
+    
+    var timeInput = document.getElementById('base-time').value;
+    if (!timeInput) {
+        alert("Informe o horário base (Ex: 11:00) para iniciar o monitoramento!");
+        return;
+    }
 
-    // Executa e popula o array com os próximos horários baseados em "Agora"
-    rareSchedule = generateScheduleFromNow();
-    nextRareIndex = 0; 
+    window.stopRareCheck(); 
+
+    // Executa e popula o array
+    rareSchedule = generateScheduleFromInput(timeInput);
+    
+    // Varredura Tática: Avança automaticamente o index para ignorar horários que já passaram
+    var currentTime = Date.now();
+    nextRareIndex = 0;
+    while (nextRareIndex < rareSchedule.length && rareSchedule[nextRareIndex].timestamp <= currentTime) {
+        nextRareIndex++;
+    }
 
     renderSchedule();
-    // Monitoramento reativo em alta frequência (roda a cada 500ms para precisão cirúrgica)
     rareInterval = setInterval(checkRareTime, 500); 
 };
 
