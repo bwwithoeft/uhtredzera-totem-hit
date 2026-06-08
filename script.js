@@ -1,36 +1,6 @@
-// --- AUDIO SYSTEM (BEEP + VOZ) ---
-var audioCtx = new (window.AudioContext || window.webkitAudioContext)();
+// ... (Mantenha o sistema de Audio e lógicas do Totem/Boss originais) ...
 
-function playBeep() {
-    if (audioCtx.state === 'suspended') audioCtx.resume();
-    var osc = audioCtx.createOscillator();
-    var gain = audioCtx.createGain();
-    osc.frequency.setValueAtTime(880, audioCtx.currentTime);
-    osc.connect(gain);
-    gain.connect(audioCtx.destination);
-    osc.start();
-    gain.gain.setValueAtTime(0.1, audioCtx.currentTime);
-    gain.gain.exponentialRampToValueAtTime(0.00001, audioCtx.currentTime + 0.15);
-    osc.stop(audioCtx.currentTime + 0.15);
-}
-
-function playDoubleBeep() {
-    playBeep();
-    setTimeout(playBeep, 200);
-}
-
-function speak(text) {
-    if ('speechSynthesis' in window) {
-        window.speechSynthesis.cancel(); 
-        var msg = new SpeechSynthesisUtterance(text);
-        msg.lang = 'pt-BR';
-        msg.rate = 1.3;
-        msg.volume = 1.0;
-        window.speechSynthesis.speak(msg);
-    }
-}
-
-// --- TABS ---
+// --- TABS ATUALIZADO ---
 window.switchTab = function(tabName) {
     var tabs = document.querySelectorAll('.tab-content');
     var btns = document.querySelectorAll('.tab-btn');
@@ -46,169 +16,122 @@ window.switchTab = function(tabName) {
     
     if(tabName === 'totem') btns[0].classList.add('active');
     if(tabName === 'boss') btns[1].classList.add('active');
+    if(tabName === 'check') btns[2].classList.add('active'); // Novo botão
 };
 
-// --- LÓGICA DO TOTEM ---
-var totemCycle = 5700; 
-var sequence = ['north', 'right', 'south', 'left'];
-var totemStart = null;
-var totemInterval = null;
-var totemRunning = false;
-var totemLastBeep = -1;
 
-var totemEl = document.getElementById('totem-countdown');
-var totemBar = document.getElementById('totem-progress');
-var arrows = {
-    north: document.getElementById('north'),
-    right: document.getElementById('right'),
-    south: document.getElementById('south'),
-    left: document.getElementById('left')
-};
+// --- LÓGICA DO RARE CHECKER ---
+var rareInterval = null;
+var rareSchedule = [];
+var nextRareIndex = 0;
 
-function resetTotemVisuals() {
-    var keys = Object.keys(arrows);
-    for(var i=0; i<keys.length; i++) {
-        arrows[keys[i]].classList.remove('active');
-        arrows[keys[i]].classList.remove('warning');
-    }
-    totemEl.textContent = "0.0";
-    totemBar.style.transform = "scaleX(0)";
-}
+function generateSchedule(baseHour, baseMinute) {
+    var schedule = [];
+    var currentHour = baseHour;
+    var currentMinute = baseMinute;
 
-function updateTotem() {
-    var now = Date.now();
-    var elapsed = now - totemStart;
-    var remaining = totemCycle - (elapsed % totemCycle);
-    var totalCycles = Math.floor(elapsed / totemCycle);
-    var currentDirection = sequence[totalCycles % 4];
-    var isWarning = remaining <= 1000;
-
-    if (isWarning && totemLastBeep !== totalCycles) {
-        playBeep();
-        totemLastBeep = totalCycles;
+    // Inicia somando 10 minutos do horário base
+    currentMinute += 10;
+    if (currentMinute >= 60) {
+        currentMinute -= 60;
+        currentHour += 1;
     }
 
-    var keys = Object.keys(arrows);
-    for(var i=0; i<keys.length; i++) {
-        arrows[keys[i]].classList.remove('active');
-        arrows[keys[i]].classList.remove('warning');
+    // Calcula de 10 em 10 minutos até acabar o dia (23:50+)
+    while (currentHour < 24) {
+        var hStr = (currentHour < 10 ? "0" : "") + currentHour;
+        var mStr = (currentMinute < 10 ? "0" : "") + currentMinute;
+        schedule.push({ hour: currentHour, minute: currentMinute, str: hStr + ":" + mStr });
+
+        currentMinute += 10;
+        if (currentMinute >= 60) {
+            currentMinute -= 60;
+            currentHour += 1;
+        }
     }
-
-    if(arrows[currentDirection]) {
-        arrows[currentDirection].classList.add('active');
-        if(isWarning) arrows[currentDirection].classList.add('warning');
-    }
-
-    totemEl.textContent = (remaining / 1000).toFixed(1);
-    totemBar.style.transform = "scaleX(" + ((totemCycle - remaining) / totemCycle) + ")";
+    return schedule;
 }
 
-window.startTotem = function() {
-    if (audioCtx.state === 'suspended') audioCtx.resume();
-    if (totemRunning) stopTotem();
-    totemRunning = true;
-    totemStart = Date.now();
-    totemLastBeep = -1;
-    totemInterval = setInterval(updateTotem, 50);
-};
-
-window.stopTotem = function() {
-    totemRunning = false;
-    clearInterval(totemInterval);
-    resetTotemVisuals();
-};
-
-// --- LÓGICA DO BOSS ---
-var bossCycle = 90000; // 1m 30s
-var bossStart = null;
-var bossInterval = null;
-var bossRunning = false;
-var bossLastReset = -1;
-var bossLastSpoken = -1; 
-
-var bossEl = document.getElementById('boss-countdown');
-var bossBar = document.getElementById('boss-progress');
-
-function formatTime(ms) {
-    var totalSeconds = Math.ceil(ms / 1000);
-    var m = Math.floor(totalSeconds / 60);
-    var s = totalSeconds % 60;
-    return (m < 10 ? "0" + m : m) + ":" + (s < 10 ? "0" + s : s);
-}
-
-function triggerBossFlash() {
-    document.body.classList.add('flash-red');
-    setTimeout(function() {
-        document.body.classList.remove('flash-red');
-    }, 300);
-}
-
-function updateBoss() {
-    var now = Date.now();
-    var elapsed = now - bossStart;
-    var remaining = bossCycle - (elapsed % bossCycle);
-    var currentCycle = Math.floor(elapsed / bossCycle);
+function renderSchedule() {
+    var container = document.getElementById('schedule-list');
+    container.innerHTML = '';
     
-    // Reset automático
-    if (currentCycle > bossLastReset) {
-        if (bossLastReset !== -1) {
-            playDoubleBeep();
-            speak("Reiniciando");
-        }
-        bossLastReset = currentCycle;
-        bossLastSpoken = -1;
+    for (var i = 0; i < rareSchedule.length; i++) {
+        var div = document.createElement('div');
+        div.className = 'time-slot';
+        if (i < nextRareIndex) div.classList.add('past');
+        if (i === nextRareIndex) div.classList.add('active');
+        div.textContent = rareSchedule[i].str;
+        container.appendChild(div);
     }
-
-    // Visual
-    bossEl.textContent = formatTime(remaining);
-    bossBar.style.transform = "scaleX(" + ((bossCycle - remaining) / bossCycle) + ")";
-
-    // Lógica Áudio/Visual
-    var secondsLeft = Math.ceil(remaining / 1000);
-
-    if (remaining <= 10900) { 
-        bossEl.style.color = "#ffcc00";
-        bossEl.style.borderColor = "#ffcc00";
-
-        if (secondsLeft <= 10 && secondsLeft >= 0 && secondsLeft !== bossLastSpoken) {
-            if (secondsLeft !== 0) {
-                speak(secondsLeft.toString());
-                
-                // PISCA TELA NO 3, 2, 1
-                if (secondsLeft <= 3) {
-                    triggerBossFlash();
-                }
-            }
-            bossLastSpoken = secondsLeft;
-        }
+    
+    var nextDisplay = document.getElementById('next-check-time');
+    if (nextRareIndex < rareSchedule.length) {
+        nextDisplay.textContent = rareSchedule[nextRareIndex].str;
     } else {
-        bossEl.style.color = "#fff";
-        bossEl.style.borderColor = "#444";
+        nextDisplay.textContent = "Finalizado";
     }
 }
 
-window.startBoss = function() {
+function checkRareTime() {
+    if (nextRareIndex >= rareSchedule.length) {
+        stopRareCheck();
+        return;
+    }
+
+    var now = new Date();
+    var next = rareSchedule[nextRareIndex];
+
+    // Checa se a hora e o minuto bateram (no segundo 0 para não apitar repetido)
+    if (now.getHours() === next.hour && now.getMinutes() === next.minute && now.getSeconds() === 0) {
+        playDoubleBeep();
+        speak("Checar boss."); // Alerta de áudio
+        
+        // Pula para o próximo horário
+        nextRareIndex++;
+        renderSchedule();
+    } 
+    // Caso o usuário abra a página e o tempo já tenha passado
+    else if (now.getHours() > next.hour || (now.getHours() === next.hour && now.getMinutes() > next.minute)) {
+        nextRareIndex++;
+        renderSchedule();
+    }
+}
+
+window.startRareCheck = function() {
     if (audioCtx.state === 'suspended') audioCtx.resume();
-    if (bossRunning) stopBoss();
-    bossRunning = true;
-    bossStart = Date.now();
-    bossLastReset = -1;
-    bossLastSpoken = -1;
     
-    updateBoss();
-    bossInterval = setInterval(updateBoss, 100);
+    var timeInput = document.getElementById('base-time').value;
+    if (!timeInput) {
+        alert("Informe o horário base!");
+        return;
+    }
+
+    stopRareCheck(); // Limpa instâncias anteriores
+
+    var parts = timeInput.split(":");
+    rareSchedule = generateSchedule(parseInt(parts[0], 10), parseInt(parts[1], 10));
+    
+    // Encontra qual é o próximo índice válido baseado no relógio atual do PC
+    var now = new Date();
+    nextRareIndex = 0;
+    while (nextRareIndex < rareSchedule.length) {
+        var next = rareSchedule[nextRareIndex];
+        if (now.getHours() < next.hour || (now.getHours() === next.hour && now.getMinutes() < next.minute)) {
+            break;
+        }
+        nextRareIndex++;
+    }
+
+    renderSchedule();
+    
+    // Checa o relógio a cada segundo
+    rareInterval = setInterval(checkRareTime, 1000); 
 };
 
-window.stopBoss = function() {
-    bossRunning = false;
-    clearInterval(bossInterval);
-    window.speechSynthesis.cancel();
-    document.body.classList.remove('flash-red');
-    bossEl.textContent = "01:30";
-    bossBar.style.transform = "scaleX(0)";
-    bossEl.style.color = "#fff";
-    bossEl.style.borderColor = "#444";
-
+window.stopRareCheck = function() {
+    clearInterval(rareInterval);
+    rareSchedule = [];
+    document.getElementById('next-check-time').textContent = "--:--";
+    document.getElementById('schedule-list').innerHTML = '';
 };
-
-
