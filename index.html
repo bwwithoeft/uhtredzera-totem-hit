@@ -3,43 +3,89 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Rotten Blood Tools - Final</title>
+    <title>Rotten Blood </title>
     <link rel="stylesheet" href="style.css">
 </head>
 <body>
 
-    <div class="tabs">
-        <button class="tab-btn active" onclick="switchTab('totem')">Radicular Totem</button>
-        <button class="tab-btn" onclick="switchTab('boss')">Boss - 1MIN30</button>
-        <!-- Novo Botão Adicionado -->
-        <button class="tab-btn" onclick="switchTab('check')">Check Rare</button> 
-    </div>
-
-    <div id="tab-totem" class="tab-content active">
-        <!-- ... (Código original do Totem mantido) ... -->
-    </div>
-
-    <div id="tab-boss" class="tab-content">
-        <!-- ... (Código original do Boss mantido) ... -->
-    </div>
-
-    <!-- NOVA ABA: CHECK RARE -->
-    <div id="tab-check" class="tab-content">
-        <h1>Boss Checker</h1>
-        <p>Aviso a cada 10 minutos a partir do horário base.</p>
-
-        <div class="controls" style="margin-top: 0;">
-            <input type="time" id="base-time" class="time-input" required>
-            <button class="btn-start" onclick="startRareCheck()">Iniciar</button>
-            <button class="btn-stop" onclick="stopRareCheck()">Parar</button>
+    <div class="dashboard-container">
+        <div class="tabs">
+            <button class="tab-btn active" onclick="switchTab('totem')">Radicular Totem</button>
+            <button class="tab-btn" onclick="switchTab('boss')">Boss (1M 30S)</button>
+            <button class="tab-btn" onclick="switchTab('check')">Check Rare (10MIN)</button>
         </div>
 
-        <div class="next-check-display">
-            Próximo Check: <span id="next-check-time">--:--</span>
+        <div id="tab-totem" class="tab-content active">
+            <div class="panel-header">
+                <h1>Rotten Blood Timer</h1>
+                <span class="subtitle">Radicular Totem - Petrufactory</span>
+            </div>
+
+            <div class="compass-container">
+                <div class="arrow north" id="north">▲</div>
+                <div class="arrow left" id="left">◀</div>
+                <div class="center-timer" id="totem-countdown">0.0</div>
+                <div class="arrow right" id="right">▶</div>
+                <div class="arrow south" id="south">▼</div>
+            </div>
+
+            <div class="progress-container">
+                <div class="progress-bar" id="totem-progress"></div>
+            </div>
+
+            <div class="controls">
+                <button class="btn btn-start" onclick="startTotem()">Start (Alavanca)</button>
+                <button class="btn btn-stop" onclick="stopTotem()">Reset</button>
+            </div>
+
+            <div class="instruction">
+                <strong>Mecânica Totem:</strong> Ao bater na ESQUERDA, clique em START. Ciclo contínuo de 5.7 segundos por direção com bipes táticos de aproximação.
+            </div>
         </div>
 
-        <div class="schedule-list" id="schedule-list">
-            <!-- Lista de horários gerada via JS -->
+        <div id="tab-boss" class="tab-content">
+            <div class="panel-header">
+                <h1>Boss Arena Timer</h1>
+                <span class="subtitle">Contagem Regressiva Crítica</span>
+            </div>
+
+            <div class="boss-timer-display" id="boss-countdown">01:30</div>
+
+            <div class="progress-container">
+                <div class="progress-bar boss-progress" id="boss-progress"></div>
+            </div>
+
+            <div class="controls">
+                <button class="btn btn-start" onclick="startBoss()">Start Arena</button>
+                <button class="btn btn-stop" onclick="stopBoss()">Reset</button>
+            </div>
+
+            <div class="instruction boss-instruction">
+                <strong>Mecânica Boss (1m 30s):</strong> Reinício automático com chamada de voz tática nos últimos 10s. A tela piscará em vermelho nos 3 segundos finais.
+            </div>
+        </div>
+
+        <div id="tab-check" class="tab-content">
+            <div class="panel-header">
+                <h1>Rare Boss Checker</h1>
+                <span class="subtitle">Monitoramento Inteligente (Horário Atual)</span>
+            </div>
+
+            <div class="next-check-box">
+                <span class="label">PRÓXIMO CHECK AGENDADO</span>
+                <div class="next-check-display" id="next-check-time">--:--</div>
+            </div>
+
+            <div class="controls">
+                <button class="btn btn-start btn-rare" onclick="startRareCheck()">Iniciar Monitoramento</button>
+                <button class="btn btn-stop" onclick="stopRareCheck()">Parar</button>
+            </div>
+
+            <div class="schedule-wrapper">
+                <h3>Janelas de Check para o Resto do Dia</h3>
+                <div class="schedule-list" id="schedule-list">
+                    </div>
+            </div>
         </div>
     </div>
 
