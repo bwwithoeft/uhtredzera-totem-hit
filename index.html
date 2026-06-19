@@ -13,6 +13,7 @@
             <button class="tab-btn active" onclick="switchTab('totem')">Radicular Totem</button>
             <button class="tab-btn" onclick="switchTab('boss')">Boss (1M 30S)</button>
             <button class="tab-btn" onclick="switchTab('check')">Check Rare (10MIN)</button>
+            <button class="tab-btn" onclick="switchTab('potion')">Potion (10MIN)</button>
         </div>
 
         <div id="tab-totem" class="tab-content active">
@@ -84,8 +85,29 @@
 
             <div class="schedule-wrapper">
                 <h3>Janelas de Check do dia</h3>
-                <div class="schedule-list" id="schedule-list">
-                    </div>
+                <div class="schedule-list" id="schedule-list"></div>
+            </div>
+        </div>
+
+        <div id="tab-potion" class="tab-content">
+            <div class="panel-header">
+                <h1>Mastermind Potion</h1>
+                <span class="subtitle">Gerenciador de Buff (+3 ML)</span>
+            </div>
+
+            <div class="potion-timer-display" id="potion-countdown">10:00</div>
+
+            <div class="progress-container">
+                <div class="progress-bar potion-progress" id="potion-progress"></div>
+            </div>
+
+            <div class="controls">
+                <button class="btn btn-start btn-potion" onclick="startPotion()">Beber Potion</button>
+                <button class="btn btn-stop" onclick="stopPotion()">Reset</button>
+            </div>
+
+            <div class="instruction potion-instruction">
+                <strong>Mecânica Potion (10 min):</strong> Contagem regressiva tática com aviso por voz nos 10 segundos finais para reuso preventivo.
             </div>
         </div>
     </div>
