@@ -1,6 +1,3 @@
-// ==========================================
-// 1. ENGINE DE ÁUDIO (BEEP & SPEECH SYNTHESIS)
-// ==========================================
 var audioCtx = null;
 
 function initAudio() {
@@ -42,9 +39,6 @@ function speak(text) {
     }
 }
 
-// ==========================================
-// 2. CONTROLE DE NAVEGAÇÃO DE ABAS
-// ==========================================
 window.switchTab = function(tabName) {
     var tabs = document.querySelectorAll('.tab-content');
     var btns = document.querySelectorAll('.tab-btn');
@@ -61,11 +55,9 @@ window.switchTab = function(tabName) {
     if(tabName === 'totem') btns[0].classList.add('active');
     if(tabName === 'boss') btns[1].classList.add('active');
     if(tabName === 'check') btns[2].classList.add('active');
+    if(tabName === 'potion') btns[3].classList.add('active');
 };
 
-// ==========================================
-// 3. MECÂNICA RADICULAR TOTEM
-// ==========================================
 var totemCycle = 5700; 
 var sequence = ['north', 'right', 'south', 'left'];
 var totemStart = null;
@@ -139,9 +131,6 @@ window.stopTotem = function() {
     resetTotemVisuals();
 };
 
-// ==========================================
-// 4. MECÂNICA BOSS TIMER (1M 30S)
-// ==========================================
 var bossCycle = 90000; 
 var bossStart = null;
 var bossInterval = null;
@@ -234,9 +223,6 @@ window.stopBoss = function() {
     if(bossBar) bossBar.style.transform = "scaleX(0)";
 };
 
-// ==========================================
-// 5. MECÂNICA RARE CHECKER (AGENDAMENTO MANUAL)
-// ==========================================
 var rareInterval = null;
 var rareSchedule = [];
 var nextRareIndex = 0;
@@ -248,16 +234,11 @@ function generateScheduleFromInput(timeStr) {
     var baseMin = parseInt(parts[1], 10);
     
     var now = new Date();
-    
-    // Instancia o timestamp inicial fixado no dia atual com a hora digitada
     var loopTime = new Date(now.getFullYear(), now.getMonth(), now.getDate(), baseHour, baseMin, 0, 0);
     
-    // Adiciona os primeiros 10 minutos
     loopTime.setMinutes(loopTime.getMinutes() + 10);
-    
     var currentDay = now.getDate();
     
-    // Loop incremental de 10 em 10 minutos gerando os alvos até o dia virar
     while (loopTime.getDate() === currentDay) {
         var h = loopTime.getHours();
         var m = loopTime.getMinutes();
@@ -308,7 +289,6 @@ function checkRareTime() {
     var currentTime = Date.now();
     var nextTarget = rareSchedule[nextRareIndex];
 
-    // Se o relógio do sistema atingir ou ultrapassar o carimbo de data/hora do alvo tático
     if (currentTime >= nextTarget.timestamp) {
         playDoubleBeep();
         speak("Checar boss"); 
@@ -320,7 +300,6 @@ function checkRareTime() {
 
 window.startRareCheck = function() {
     initAudio();
-    
     var timeInput = document.getElementById('base-time').value;
     if (!timeInput) {
         alert("Informe o horário base (Ex: 11:00) para iniciar o monitoramento!");
@@ -329,10 +308,7 @@ window.startRareCheck = function() {
 
     window.stopRareCheck(); 
 
-    // Executa e popula o array
     rareSchedule = generateScheduleFromInput(timeInput);
-    
-    // Varredura Tática: Avança automaticamente o index para ignorar horários que já passaram
     var currentTime = Date.now();
     nextRareIndex = 0;
     while (nextRareIndex < rareSchedule.length && rareSchedule[nextRareIndex].timestamp <= currentTime) {
@@ -353,4 +329,72 @@ window.stopRareCheck = function() {
         nextDisplay.classList.remove('monitoring-active');
     }
     if(container) container.innerHTML = '';
+};
+
+var potionCycle = 600000; 
+var potionStart = null;
+var potionInterval = null;
+var potionRunning = false;
+var potionLastSpoken = -1;
+
+var potionEl = document.getElementById('potion-countdown');
+var potionBar = document.getElementById('potion-progress');
+
+function updatePotion() {
+    var now = Date.now();
+    var elapsed = now - potionStart;
+    
+    if (elapsed >= potionCycle) {
+        playDoubleBeep();
+        speak("Potion expirou! Use novamente.");
+        window.stopPotion();
+        return;
+    }
+
+    var remaining = potionCycle - elapsed;
+
+    if (potionEl) potionEl.textContent = formatTime(remaining);
+    if (potionBar) potionBar.style.transform = "scaleX(" + ((potionCycle - remaining) / potionCycle) + ")";
+
+    var secondsLeft = Math.ceil(remaining / 1000);
+
+    if (remaining <= 10900) {
+        if (potionEl) {
+            potionEl.style.color = "var(--neon-amber)";
+            potionEl.style.borderColor = "var(--neon-amber)";
+        }
+
+        if (secondsLeft <= 10 && secondsLeft > 0 && secondsLeft !== potionLastSpoken) {
+            speak("Potion em " + secondsLeft);
+            potionLastSpoken = secondsLeft;
+        }
+    } else {
+        if (potionEl) {
+            potionEl.style.color = "#fff";
+            potionEl.style.borderColor = "var(--border-color)";
+        }
+    }
+}
+
+window.startPotion = function() {
+    initAudio();
+    if (potionRunning) stopPotion();
+    potionRunning = true;
+    potionStart = Date.now();
+    potionLastSpoken = -1;
+    
+    updatePotion();
+    potionInterval = setInterval(updatePotion, 250); 
+};
+
+window.stopPotion = function() {
+    potionRunning = false;
+    clearInterval(potionInterval);
+    potionLastSpoken = -1;
+    if (potionEl) {
+        potionEl.textContent = "10:00";
+        potionEl.style.color = "#fff";
+        potionEl.style.borderColor = "var(--border-color)";
+    }
+    if (potionBar) potionBar.style.transform = "scaleX(0)";
 };
