@@ -347,8 +347,9 @@ function updatePotion() {
     if (elapsed >= potionCycle) {
         playDoubleBeep();
         speak("Potion expirou! Use novamente.");
-        window.stopPotion();
-        return;
+        potionStart = Date.now();
+        potionLastSpoken = -1;
+        elapsed = 0; 
     }
 
     var remaining = potionCycle - elapsed;
