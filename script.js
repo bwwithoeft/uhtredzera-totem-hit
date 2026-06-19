@@ -376,7 +376,7 @@ function updatePotion() {
     }
 }
 
-window.startPotion = function() {
+function startPotion() {
     initAudio();
     if (potionRunning) stopPotion();
     potionRunning = true;
@@ -385,9 +385,9 @@ window.startPotion = function() {
     
     updatePotion();
     potionInterval = setInterval(updatePotion, 250); 
-};
+}
 
-window.stopPotion = function() {
+function stopPotion() {
     potionRunning = false;
     clearInterval(potionInterval);
     potionLastSpoken = -1;
@@ -397,4 +397,7 @@ window.stopPotion = function() {
         potionEl.style.borderColor = "var(--border-color)";
     }
     if (potionBar) potionBar.style.transform = "scaleX(0)";
-};
+}
+
+window.startPotion = startPotion;
+window.stopPotion = stopPotion;
