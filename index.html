@@ -14,6 +14,7 @@
             <button class="tab-btn" onclick="switchTab('boss')">Boss (1M 30S)</button>
             <button class="tab-btn" onclick="switchTab('check')">Check Rare (10MIN)</button>
             <button class="tab-btn" onclick="switchTab('potion')">Potion (10MIN)</button>
+            <button class="tab-btn" onclick="switchTab('peixinho')">Peixinho (2MIN)</button>
         </div>
 
         <div id="tab-totem" class="tab-content active">
@@ -108,6 +109,28 @@
 
             <div class="instruction potion-instruction">
                 <strong>Mecânica Potion (10 min):</strong> Contagem regressiva tática com aviso por voz nos 10 segundos finais para reuso preventivo.
+            </div>
+        </div>
+
+        <div id="tab-peixinho" class="tab-content">
+            <div class="panel-header">
+                <h1>Peixinho Timer</h1>
+                <span class="subtitle">ALERTA CICLO 02MIN</span>
+            </div>
+
+            <div class="peixinho-timer-display" id="peixinho-countdown">02:00</div>
+
+            <div class="progress-container">
+                <div class="progress-bar peixinho-progress" id="peixinho-progress"></div>
+            </div>
+
+            <div class="controls">
+                <button class="btn btn-start btn-peixinho" onclick="startPeixinho()">START</button>
+                <button class="btn btn-stop" onclick="stopPeixinho()">STOP</button>
+            </div>
+
+            <div class="instruction peixinho-instruction">
+                <strong>Mecânica Peixinho (2 min):</strong> Contagem regressiva contínua de 2 minutos com contagem regressiva por áudio nos últimos 15 segundos. Reinicia automaticamente ao finalizar.
             </div>
         </div>
     </div>
