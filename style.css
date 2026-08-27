@@ -65,7 +65,7 @@ body.flash-red {
     color: var(--text-muted);
     border: none;
     cursor: pointer;
-    font-size: 0.9rem;
+    font-size: 0.8rem;
     font-weight: 700;
     border-radius: 8px;
     text-transform: uppercase;
@@ -204,6 +204,15 @@ h1 {
     box-shadow: 0 6px 20px rgba(6, 182, 212, 0.35);
 }
 
+.btn-peixinho {
+    background: linear-gradient(135deg, #10b981, #047857);
+    box-shadow: 0 4px 14px rgba(16, 185, 129, 0.25);
+}
+.btn-peixinho:hover {
+    transform: translateY(-2px);
+    box-shadow: 0 6px 20px rgba(16, 185, 129, 0.35);
+}
+
 .btn:active {
     transform: translateY(1px);
     box-shadow: none;
@@ -237,6 +246,10 @@ h1 {
     background-color: var(--neon-blue);
 }
 
+.peixinho-progress {
+    background-color: var(--neon-green);
+}
+
 .instruction {
     padding: 15px;
     background-color: var(--bg-main);
@@ -259,6 +272,10 @@ h1 {
 
 .potion-instruction {
     border-left-color: var(--neon-blue);
+}
+
+.peixinho-instruction {
+    border-left-color: var(--neon-green);
 }
 
 .compass-container {
@@ -316,7 +333,7 @@ h1 {
     box-shadow: 0 0 20px rgba(245, 158, 11, 0.3);
 }
 
-.boss-timer-display, .potion-timer-display {
+.boss-timer-display, .potion-timer-display, .peixinho-timer-display {
     font-size: 5.2rem;
     font-weight: 800;
     color: #fff;
