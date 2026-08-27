@@ -56,6 +56,7 @@ window.switchTab = function(tabName) {
     if(tabName === 'boss') btns[1].classList.add('active');
     if(tabName === 'check') btns[2].classList.add('active');
     if(tabName === 'potion') btns[3].classList.add('active');
+    if(tabName === 'peixinho') btns[4].classList.add('active');
 };
 
 var totemCycle = 5700; 
@@ -402,3 +403,81 @@ function stopPotion() {
 
 window.startPotion = startPotion;
 window.stopPotion = stopPotion;
+
+/* ==========================================================================
+   LÓGICA PEIXINHO (2 MINUTOS COM ÁUDIO NOS ÚLTIMOS 15 SECS E LOOP AUTOMÁTICO)
+   ========================================================================== */
+var peixinhoCycle = 120000; // 2 minutos em milissegundos
+var peixinhoStart = null;
+var peixinhoInterval = null;
+var peixinhoRunning = false;
+var peixinhoLastReset = -1;
+var peixinhoLastSpoken = -1;
+
+var peixinhoEl = document.getElementById('peixinho-countdown');
+var peixinhoBar = document.getElementById('peixinho-progress');
+
+function updatePeixinho() {
+    var now = Date.now();
+    var elapsed = now - peixinhoStart;
+    var remaining = peixinhoCycle - (elapsed % peixinhoCycle);
+    var currentCycle = Math.floor(elapsed / peixinhoCycle);
+
+    // Tratamento de reinício do ciclo (Loop contínuo)
+    if (currentCycle > peixinhoLastReset) {
+        if (peixinhoLastReset !== -1) {
+            playDoubleBeep();
+        }
+        peixinhoLastReset = currentCycle;
+        peixinhoLastSpoken = -1;
+    }
+
+    if (peixinhoEl) peixinhoEl.textContent = formatTime(remaining);
+    if (peixinhoBar) peixinhoBar.style.transform = "scaleX(" + ((peixinhoCycle - remaining) / peixinhoCycle) + ")";
+
+    var secondsLeft = Math.ceil(remaining / 1000);
+
+    // Inicia contagem por áudio nos últimos 15 segundos
+    if (remaining <= 15900) {
+        if (peixinhoEl) {
+            peixinhoEl.style.color = "var(--neon-green)";
+            peixinhoEl.style.borderColor = "var(--neon-green)";
+        }
+
+        if (secondsLeft <= 15 && secondsLeft > 0 && secondsLeft !== peixinhoLastSpoken) {
+            speak(secondsLeft.toString());
+            peixinhoLastSpoken = secondsLeft;
+        }
+    } else {
+        if (peixinhoEl) {
+            peixinhoEl.style.color = "#fff";
+            peixinhoEl.style.borderColor = "var(--border-color)";
+        }
+    }
+}
+
+window.startPeixinho = function() {
+    initAudio();
+    if (peixinhoRunning) stopPeixinho();
+    peixinhoRunning = true;
+    peixinhoStart = Date.now();
+    peixinhoLastReset = -1;
+    peixinhoLastSpoken = -1;
+
+    updatePeixinho();
+    peixinhoInterval = setInterval(updatePeixinho, 100);
+};
+
+window.stopPeixinho = function() {
+    peixinhoRunning = false;
+    clearInterval(peixinhoInterval);
+    if ('speechSynthesis' in window) window.speechSynthesis.cancel();
+    peixinhoLastSpoken = -1;
+    peixinhoLastReset = -1;
+    if (peixinhoEl) {
+        peixinhoEl.textContent = "02:00";
+        peixinhoEl.style.color = "#fff";
+        peixinhoEl.style.borderColor = "var(--border-color)";
+    }
+    if (peixinhoBar) peixinhoBar.style.transform = "scaleX(0)";
+};
