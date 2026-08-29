@@ -1,140 +1,126 @@
 <!DOCTYPE html>
 <html lang="pt-BR">
 <head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Rotten Blood</title>
-    <link rel="stylesheet" href="style.css">
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Controle de Volume do Áudio</title>
+  <style>
+    /* Estilização moderna e limpa para o controle de áudio */
+    .audio-control-container {
+      display: inline-flex;
+      align-items: center;
+      gap: 12px;
+      padding: 12px 20px;
+      background-color: #1e1e24;
+      color: #ffffff;
+      border-radius: 8px;
+      font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+      box-shadow: 0 4px 10px rgba(0, 0, 0, 0.3);
+    }
+
+    .audio-control-container label {
+      font-size: 14px;
+      font-weight: 600;
+      user-select: none;
+    }
+
+    .volume-display {
+      min-width: 24px;
+      font-weight: bold;
+      color: #00e676;
+      text-align: center;
+    }
+
+    input[type="range"] {
+      -webkit-appearance: none;
+      appearance: none;
+      width: 140px;
+      height: 6px;
+      background: #424242;
+      border-radius: 3px;
+      outline: none;
+      cursor: pointer;
+    }
+
+    input[type="range"]::-webkit-slider-thumb {
+      -webkit-appearance: none;
+      appearance: none;
+      width: 16px;
+      height: 16px;
+      border-radius: 50%;
+      background: #00e676;
+      cursor: pointer;
+      transition: transform 0.1s ease-in-out;
+    }
+
+    input[type="range"]::-webkit-slider-thumb:hover {
+      transform: scale(1.2);
+    }
+
+    input[type="range"]::-moz-range-thumb {
+      width: 16px;
+      height: 16px;
+      border-radius: 50%;
+      background: #00e676;
+      border: none;
+      cursor: pointer;
+    }
+  </style>
 </head>
 <body>
 
-    <div class="dashboard-container">
-        <div class="tabs">
-            <button class="tab-btn active" onclick="switchTab('totem')">Radicular Totem</button>
-            <button class="tab-btn" onclick="switchTab('boss')">Boss (1M 30S)</button>
-            <button class="tab-btn" onclick="switchTab('check')">Check Rare (10MIN)</button>
-            <button class="tab-btn" onclick="switchTab('potion')">Potion (10MIN)</button>
-            <button class="tab-btn" onclick="switchTab('peixinho')">Peixinho (2MIN)</button>
-        </div>
+  <!-- Componente de Controle de Volume -->
+  <div class="audio-control-container">
+    <label for="volumeSlider">Volume:</label>
+    <input 
+      type="range" 
+      id="volumeSlider" 
+      min="0" 
+      max="15" 
+      step="1" 
+      value="15"
+    >
+    <span id="volumeDisplay" class="volume-display">15</span>
+  </div>
 
-        <div id="tab-totem" class="tab-content active">
-            <div class="panel-header">
-                <h1>Rotten Blood Timer</h1>
-                <span class="subtitle">Radicular Totem - Petrufactory</span>
-            </div>
+  <!-- Elemento de Áudio (Substitua 'seu-audio.mp3' pelo caminho do seu arquivo) -->
+  <audio id="meuAudio" src="seu-audio.mp3" preload="auto"></audio>
 
-            <div class="compass-container">
-                <div class="arrow north" id="north">▲</div>
-                <div class="arrow left" id="left">◀</div>
-                <div class="center-timer" id="totem-countdown">0.0</div>
-                <div class="arrow right" id="right">▶</div>
-                <div class="arrow south" id="south">▼</div>
-            </div>
+  <script>
+    document.addEventListener('DOMContentLoaded', () => {
+      const audio = document.getElementById('meuAudio');
+      const volumeSlider = document.getElementById('volumeSlider');
+      const volumeDisplay = document.getElementById('volumeDisplay');
 
-            <div class="progress-container">
-                <div class="progress-bar" id="totem-progress"></div>
-            </div>
+      // 1. Carrega o volume salvo no localStorage (se existir), caso contrário usa 15 como padrão
+      const volumeSalvo = localStorage.getItem('app_audio_volume');
+      const volumeInicial = volumeSalvo !== null ? parseInt(volumeSalvo, 10) : 15;
 
-            <div class="controls">
-                <button class="btn btn-start" onclick="startTotem()">Start (Alavanca)</button>
-                <button class="btn btn-stop" onclick="stopTotem()">Reset</button>
-            </div>
+      // 2. Aplica o volume inicial nos elementos
+      atualizarVolume(volumeInicial);
 
-            <div class="instruction">
-                <strong>Mecânica Totem:</strong> Ao bater na ESQUERDA, clique em START. Ciclo contínuo de 5.7 segundos por direção com bipes táticos de aproximação.
-            </div>
-        </div>
+      // 3. Evento para capturar a mudança de volume em tempo real
+      volumeSlider.addEventListener('input', (e) => {
+        const novoVolume = parseInt(e.target.value, 10);
+        atualizarVolume(novoVolume);
+        // Persiste a escolha do usuário
+        localStorage.setItem('app_audio_volume', novoVolume);
+      });
 
-        <div id="tab-boss" class="tab-content">
-            <div class="panel-header">
-                <h1>Boss Arena Timer</h1>
-                <span class="subtitle">Contagem Regressiva Crítica</span>
-            </div>
+      // Função responsável por converter a escala 0-15 e aplicar ao elemento de áudio
+      function atualizarVolume(nivel) {
+        // Garante que o valor fique dentro dos limites 0 e 15
+        const nivelValidado = Math.max(0, Math.min(15, nivel));
+        
+        // Atualiza a posição do slider e a label visual
+        volumeSlider.value = nivelValidado;
+        volumeDisplay.textContent = nivelValidado;
 
-            <div class="boss-timer-display" id="boss-countdown">01:30</div>
+        // Converte a escala de 0..15 para a escala do HTML5 (0.0 até 1.0)
+        audio.volume = nivelValidado / 15;
+      }
+    });
+  </script>
 
-            <div class="progress-container">
-                <div class="progress-bar boss-progress" id="boss-progress"></div>
-            </div>
-
-            <div class="controls">
-                <button class="btn btn-start" onclick="startBoss()">Start Arena</button>
-                <button class="btn btn-stop" onclick="stopBoss()">Reset</button>
-            </div>
-
-            <div class="instruction boss-instruction">
-                <strong>Mecânica Boss (1m 30s):</strong> Reinício automático com chamada de voz tática nos últimos 10s. A tela piscará em vermelho nos 3 segundos finais.
-            </div>
-        </div>
-
-        <div id="tab-check" class="tab-content">
-            <div class="panel-header">
-                <h1>BOSS CHECKER</h1>
-                <span class="subtitle">Timer manual</span>
-            </div>
-
-            <div class="next-check-box">
-                <span class="label">PRÓXIMO CHECK</span>
-                <div class="next-check-display" id="next-check-time">--:--</div>
-            </div>
-
-            <div class="controls rare-controls">
-                <input type="time" id="base-time" class="time-input" required title="Informe o horário inicial">
-                <button class="btn btn-start btn-rare" onclick="startRareCheck()">START</button>
-                <button class="btn btn-stop" onclick="stopRareCheck()">STOP</button>
-            </div>
-
-            <div class="schedule-wrapper">
-                <h3>Janelas de Check do dia</h3>
-                <div class="schedule-list" id="schedule-list"></div>
-            </div>
-        </div>
-
-        <div id="tab-potion" class="tab-content">
-            <div class="panel-header">
-                <h1>Mastermind Potion</h1>
-                <span class="subtitle">ALERTA POTION 10MIN</span>
-            </div>
-
-            <div class="potion-timer-display" id="potion-countdown">10:00</div>
-
-            <div class="progress-container">
-                <div class="progress-bar potion-progress" id="potion-progress"></div>
-            </div>
-
-            <div class="controls">
-                <button class="btn btn-start btn-potion" onclick="startPotion()">START</button>
-                <button class="btn btn-stop" onclick="stopPotion()">STOP</button>
-            </div>
-
-            <div class="instruction potion-instruction">
-                <strong>Mecânica Potion (10 min):</strong> Contagem regressiva tática com aviso por voz nos 10 segundos finais para reuso preventivo.
-            </div>
-        </div>
-
-        <div id="tab-peixinho" class="tab-content">
-            <div class="panel-header">
-                <h1>Peixinho Timer</h1>
-                <span class="subtitle">ALERTA CICLO 02MIN</span>
-            </div>
-
-            <div class="peixinho-timer-display" id="peixinho-countdown">02:00</div>
-
-            <div class="progress-container">
-                <div class="progress-bar peixinho-progress" id="peixinho-progress"></div>
-            </div>
-
-            <div class="controls">
-                <button class="btn btn-start btn-peixinho" onclick="startPeixinho()">START</button>
-                <button class="btn btn-stop" onclick="stopPeixinho()">STOP</button>
-            </div>
-
-            <div class="instruction peixinho-instruction">
-                <strong>Mecânica Peixinho (2 min):</strong> Contagem regressiva contínua de 2 minutos com contagem regressiva por áudio nos últimos 15 segundos. Reinicia automaticamente ao finalizar.
-            </div>
-        </div>
-    </div>
-
-    <script src="script.js"></script>
 </body>
 </html>
