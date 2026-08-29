@@ -1,313 +1,145 @@
 <!DOCTYPE html>
 <html lang="pt-BR">
 <head>
-  <meta charset="UTF-8">
-  <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>Timer com Controle de Volume</title>
-  <style>
-    * {
-      box-sizing: border-box;
-      margin: 0;
-      padding: 0;
-    }
-
-    body {
-      background-color: #121214;
-      color: #e1e1e6;
-      font-family: 'Segoe UI', Roboto, Helvetica, Arial, sans-serif;
-      display: flex;
-      flex-direction: column;
-      align-items: center;
-      justify-content: center;
-      min-height: 100vh;
-      gap: 30px;
-      padding: 20px;
-    }
-
-    /* Container do Controle de Volume */
-    .audio-control-container {
-      display: flex;
-      align-items: center;
-      gap: 15px;
-      padding: 14px 24px;
-      background-color: #1e1e24;
-      border: 1px solid #29292e;
-      border-radius: 12px;
-      box-shadow: 0 4px 20px rgba(0, 0, 0, 0.5);
-    }
-
-    .audio-control-container label {
-      font-size: 15px;
-      font-weight: 600;
-      color: #a8a8b3;
-      user-select: none;
-    }
-
-    .volume-display {
-      min-width: 28px;
-      font-size: 18px;
-      font-weight: bold;
-      color: #00e676;
-      text-align: center;
-    }
-
-    input[type="range"] {
-      -webkit-appearance: none;
-      appearance: none;
-      width: 160px;
-      height: 8px;
-      background: #29292e;
-      border-radius: 4px;
-      outline: none;
-      cursor: pointer;
-    }
-
-    input[type="range"]::-webkit-slider-thumb {
-      -webkit-appearance: none;
-      appearance: none;
-      width: 18px;
-      height: 18px;
-      border-radius: 50%;
-      background: #00e676;
-      cursor: pointer;
-      transition: transform 0.1s ease-in-out;
-    }
-
-    input[type="range"]::-webkit-slider-thumb:hover {
-      transform: scale(1.2);
-    }
-
-    input[type="range"]::-moz-range-thumb {
-      width: 18px;
-      height: 18px;
-      border-radius: 50%;
-      background: #00e676;
-      border: none;
-      cursor: pointer;
-    }
-
-    /* Container do Timer */
-    .timer-card {
-      background-color: #1e1e24;
-      border: 1px solid #29292e;
-      border-radius: 16px;
-      padding: 30px;
-      display: flex;
-      flex-direction: column;
-      align-items: center;
-      gap: 20px;
-      box-shadow: 0 8px 30px rgba(0, 0, 0, 0.6);
-    }
-
-    .circle-container {
-      position: relative;
-      width: 160px;
-      height: 160px;
-    }
-
-    .circle-bg {
-      fill: none;
-      stroke: #29292e;
-      stroke-width: 10;
-    }
-
-    .circle-progress {
-      fill: none;
-      stroke: #00e676;
-      stroke-width: 10;
-      stroke-linecap: round;
-      transform: rotate(-90deg);
-      transform-origin: 50% 50%;
-      stroke-dasharray: 440;
-      stroke-dashoffset: 0;
-      transition: stroke-dashoffset 0.1s linear;
-    }
-
-    .timer-text {
-      position: absolute;
-      top: 50%;
-      left: 50%;
-      transform: translate(-50%, -50%);
-      font-size: 36px;
-      font-weight: bold;
-      color: #ffffff;
-    }
-
-    /* Botões de Ação */
-    .button-group {
-      display: flex;
-      gap: 12px;
-    }
-
-    .btn {
-      padding: 10px 20px;
-      font-size: 14px;
-      font-weight: 600;
-      border: none;
-      border-radius: 8px;
-      cursor: pointer;
-      transition: opacity 0.2s ease, transform 0.1s ease;
-    }
-
-    .btn:active {
-      transform: scale(0.96);
-    }
-
-    .btn-primary {
-      background-color: #00e676;
-      color: #09090a;
-    }
-
-    .btn-secondary {
-      background-color: #29292e;
-      color: #e1e1e6;
-    }
-
-    .btn:hover {
-      opacity: 0.9;
-    }
-  </style>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Rotten Blood</title>
+    <link rel="stylesheet" href="style.css">
 </head>
 <body>
 
-  <!-- Componente de Controle de Volume (Escala 15 a 0) -->
-  <div class="audio-control-container">
-    <label for="volumeSlider">Volume:</label>
-    <input 
-      type="range" 
-      id="volumeSlider" 
-      min="0" 
-      max="15" 
-      step="1" 
-      value="15"
-    >
-    <span id="volumeDisplay" class="volume-display">15</span>
-  </div>
+    <div class="dashboard-container">
+        <div class="tabs">
+            <button class="tab-btn active" onclick="switchTab('totem')">Radicular Totem</button>
+            <button class="tab-btn" onclick="switchTab('boss')">Boss (1M 30S)</button>
+            <button class="tab-btn" onclick="switchTab('check')">Check Rare (10MIN)</button>
+            <button class="tab-btn" onclick="switchTab('potion')">Potion (10MIN)</button>
+            <button class="tab-btn" onclick="switchTab('peixinho')">Peixinho (2MIN)</button>
+        </div>
 
-  <!-- Componente Visual do Timer -->
-  <div class="timer-card">
-    <div class="circle-container">
-      <svg width="160" height="160">
-        <circle class="circle-bg" cx="80" cy="80" r="70"></circle>
-        <circle id="circleProgress" class="circle-progress" cx="80" cy="80" r="70"></circle>
-      </svg>
-      <div id="timerDisplay" class="timer-text">5</div>
+        <div id="tab-totem" class="tab-content active">
+            <div class="panel-header">
+                <h1>Rotten Blood Timer</h1>
+                <span class="subtitle">Radicular Totem - Petrufactory</span>
+            </div>
+
+            <div class="compass-container">
+                <div class="arrow north" id="north">▲</div>
+                <div class="arrow left" id="left">◀</div>
+                <div class="center-timer" id="totem-countdown">0.0</div>
+                <div class="arrow right" id="right">▶</div>
+                <div class="arrow south" id="south">▼</div>
+            </div>
+
+            <div class="progress-container">
+                <div class="progress-bar" id="totem-progress"></div>
+            </div>
+
+            <div class="controls">
+                <button class="btn btn-start" onclick="startTotem()">Start (Alavanca)</button>
+                <button class="btn btn-stop" onclick="stopTotem()">Reset</button>
+            </div>
+
+            <div class="instruction">
+                <strong>Mecânica Totem:</strong> Ao bater na ESQUERDA, clique em START. Ciclo contínuo de 5.7 segundos por direção com bipes táticos de aproximação.
+            </div>
+        </div>
+
+        <div id="tab-boss" class="tab-content">
+            <div class="panel-header">
+                <h1>Boss Arena Timer</h1>
+                <span class="subtitle">Contagem Regressiva Crítica</span>
+            </div>
+
+            <div class="boss-timer-display" id="boss-countdown">01:30</div>
+
+            <div class="progress-container">
+                <div class="progress-bar boss-progress" id="boss-progress"></div>
+            </div>
+
+            <div class="controls">
+                <button class="btn btn-start" onclick="startBoss()">Start Arena</button>
+                <button class="btn btn-stop" onclick="stopBoss()">Reset</button>
+            </div>
+
+            <div class="instruction boss-instruction">
+                <strong>Mecânica Boss (1m 30s):</strong> Reinício automático com chamada de voz tática nos últimos 10s. A tela piscará em vermelho nos 3 segundos finais.
+            </div>
+        </div>
+
+        <div id="tab-check" class="tab-content">
+            <div class="panel-header">
+                <h1>BOSS CHECKER</h1>
+                <span class="subtitle">Timer manual</span>
+            </div>
+
+            <div class="next-check-box">
+                <span class="label">PRÓXIMO CHECK</span>
+                <div class="next-check-display" id="next-check-time">--:--</div>
+            </div>
+
+            <div class="controls rare-controls">
+                <input type="time" id="base-time" class="time-input" required title="Informe o horário inicial">
+                <button class="btn btn-start btn-rare" onclick="startRareCheck()">START</button>
+                <button class="btn btn-stop" onclick="stopRareCheck()">STOP</button>
+            </div>
+
+            <div class="schedule-wrapper">
+                <h3>Janelas de Check do dia</h3>
+                <div class="schedule-list" id="schedule-list"></div>
+            </div>
+        </div>
+
+        <div id="tab-potion" class="tab-content">
+            <div class="panel-header">
+                <h1>Mastermind Potion</h1>
+                <span class="subtitle">ALERTA POTION 10MIN</span>
+            </div>
+
+            <div class="potion-timer-display" id="potion-countdown">10:00</div>
+
+            <div class="progress-container">
+                <div class="progress-bar potion-progress" id="potion-progress"></div>
+            </div>
+
+            <div class="controls">
+                <button class="btn btn-start btn-potion" onclick="startPotion()">START</button>
+                <button class="btn btn-stop" onclick="stopPotion()">STOP</button>
+            </div>
+
+            <div class="instruction potion-instruction">
+                <strong>Mecânica Potion (10 min):</strong> Contagem regressiva tática com aviso por voz nos 10 segundos finais para reuso preventivo.
+            </div>
+        </div>
+
+        <div id="tab-peixinho" class="tab-content">
+            <div class="panel-header">
+                <h1>Peixinho Timer</h1>
+                <span class="subtitle">ALERTA CICLO 02MIN</span>
+            </div>
+
+            <div class="peixinho-timer-display" id="peixinho-countdown">02:00</div>
+
+            <div class="progress-container">
+                <div class="progress-bar peixinho-progress" id="peixinho-progress"></div>
+            </div>
+
+            <div class="volume-container">
+                <label for="peixinho-volume">Volume do Áudio: <span id="peixinho-vol-value">100%</span></label>
+                <input type="range" id="peixinho-volume" min="0" max="1" step="0.05" value="1" oninput="updatePeixinhoVolume(this.value)">
+            </div>
+
+            <div class="controls">
+                <button class="btn btn-start btn-peixinho" onclick="startPeixinho()">START</button>
+                <button class="btn btn-stop" onclick="stopPeixinho()">STOP</button>
+            </div>
+
+            <div class="instruction peixinho-instruction">
+                <strong>Mecânica Peixinho (2 min):</strong> Contagem regressiva contínua de 2 minutos com contagem regressiva por áudio nos últimos 15 segundos. Reinicia automaticamente ao finalizar.
+            </div>
+        </div>
     </div>
 
-    <div class="button-group">
-      <button id="startBtn" class="btn btn-primary">Iniciar / Reiniciar</button>
-      <button id="stopBtn" class="btn btn-secondary">Parar</button>
-    </div>
-  </div>
-
-  <!-- Elemento de Áudio sintetizado via Data URI (Apito curto de alerta) -->
-  <audio id="meuAudio" preload="auto">
-    <source src="data:audio/wav;base64,UklGRl9vAABXQVZFZm10IBAAAAABAAEAQB8AAEAfAAABAAgAZGF0YUtvAAB4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4" type="audio/wav">
-  </audio>
-
-  <script>
-    document.addEventListener('DOMContentLoaded', () => {
-      // --- ELEMENTOS DO DOM ---
-      const audio = document.getElementById('meuAudio');
-      const volumeSlider = document.getElementById('volumeSlider');
-      const volumeDisplay = document.getElementById('volumeDisplay');
-      const timerDisplay = document.getElementById('timerDisplay');
-      const circleProgress = document.getElementById('circleProgress');
-      const startBtn = document.getElementById('startBtn');
-      const stopBtn = document.getElementById('stopBtn');
-
-      // --- CONFIGURAÇÃO DO TIMER (5 Segundos) ---
-      const TOTAL_TIME = 5;
-      const CIRCUMFERENCE = 2 * Math.PI * 70; // 2 * pi * r (r=70)
-      let timerInterval = null;
-      let timeRemaining = TOTAL_TIME;
-
-      circleProgress.style.strokeDasharray = CIRCUMFERENCE;
-
-      // --- GERENCIAMENTO DE VOLUME (15 a 0) ---
-      // 1. Recupera valor salvo no localStorage ou usa 15 como padrão
-      const volumeSalvo = localStorage.getItem('app_audio_volume');
-      const volumeInicial = volumeSalvo !== null ? parseInt(volumeSalvo, 10) : 15;
-
-      // 2. Aplica volume e atualiza UI
-      function aplicarVolume(nivel) {
-        const nivelValido = Math.max(0, Math.min(15, nivel));
-        volumeSlider.value = nivelValido;
-        volumeDisplay.textContent = nivelValido;
-
-        // Converte a escala de 0..15 para a escala do elemento Audio (0.0 a 1.0)
-        audio.volume = nivelValido / 15;
-      }
-
-      aplicarVolume(volumeInicial);
-
-      // Evento de alteração no slider de volume
-      volumeSlider.addEventListener('input', (e) => {
-        const novoVolume = parseInt(e.target.value, 10);
-        aplicarVolume(novoVolume);
-        localStorage.setItem('app_audio_volume', novoVolume);
-      });
-
-      // --- LÓGICA DO TIMER E ANIMAÇÃO ---
-      function updateProgress(secondsLeft) {
-        const progressRatio = secondsLeft / TOTAL_TIME;
-        // Atualiza a borda em sentido horário
-        const offset = CIRCUMFERENCE * (1 - progressRatio);
-        circleProgress.style.strokeDashoffset = offset;
-        timerDisplay.textContent = Math.ceil(secondsLeft);
-      }
-
-      function playSound() {
-        if (audio.volume > 0) {
-          audio.currentTime = 0;
-          audio.play().catch(() => {
-            // Caso o navegador exija interação antes de reproduzir áudio
-          });
-        }
-      }
-
-      function startTimer() {
-        stopTimer();
-        timeRemaining = TOTAL_TIME;
-        updateProgress(timeRemaining);
-
-        const startTime = Date.now();
-        const endTime = startTime + (TOTAL_TIME * 1000);
-
-        timerInterval = setInterval(() => {
-          const now = Date.now();
-          const remainingMs = Math.max(0, endTime - now);
-          timeRemaining = remainingMs / 1000;
-
-          updateProgress(timeRemaining);
-
-          if (remainingMs <= 0) {
-            stopTimer();
-            playSound();
-            // Reinicia automaticamente o ciclo do timer
-            startTimer();
-          }
-        }, 50);
-      }
-
-      function stopTimer() {
-        if (timerInterval) {
-          clearInterval(timerInterval);
-          timerInterval = null;
-        }
-      }
-
-      // --- EVENTOS DOS BOTÕES ---
-      startBtn.addEventListener('click', () => {
-        startTimer();
-      });
-
-      stopBtn.addEventListener('click', () => {
-        stopTimer();
-        timeRemaining = TOTAL_TIME;
-        updateProgress(TOTAL_TIME);
-      });
-    });
-  </script>
+    <script src="script.js"></script>
 </body>
 </html>
