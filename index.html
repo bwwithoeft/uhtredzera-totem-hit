@@ -3,29 +3,49 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>Controle de Volume do Áudio</title>
+  <title>Timer com Controle de Volume</title>
   <style>
-    /* Estilização moderna e limpa para o controle de áudio */
-    .audio-control-container {
-      display: inline-flex;
+    * {
+      box-sizing: border-box;
+      margin: 0;
+      padding: 0;
+    }
+
+    body {
+      background-color: #121214;
+      color: #e1e1e6;
+      font-family: 'Segoe UI', Roboto, Helvetica, Arial, sans-serif;
+      display: flex;
+      flex-direction: column;
       align-items: center;
-      gap: 12px;
-      padding: 12px 20px;
+      justify-content: center;
+      min-height: 100vh;
+      gap: 30px;
+      padding: 20px;
+    }
+
+    /* Container do Controle de Volume */
+    .audio-control-container {
+      display: flex;
+      align-items: center;
+      gap: 15px;
+      padding: 14px 24px;
       background-color: #1e1e24;
-      color: #ffffff;
-      border-radius: 8px;
-      font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
-      box-shadow: 0 4px 10px rgba(0, 0, 0, 0.3);
+      border: 1px solid #29292e;
+      border-radius: 12px;
+      box-shadow: 0 4px 20px rgba(0, 0, 0, 0.5);
     }
 
     .audio-control-container label {
-      font-size: 14px;
+      font-size: 15px;
       font-weight: 600;
+      color: #a8a8b3;
       user-select: none;
     }
 
     .volume-display {
-      min-width: 24px;
+      min-width: 28px;
+      font-size: 18px;
       font-weight: bold;
       color: #00e676;
       text-align: center;
@@ -34,10 +54,10 @@
     input[type="range"] {
       -webkit-appearance: none;
       appearance: none;
-      width: 140px;
-      height: 6px;
-      background: #424242;
-      border-radius: 3px;
+      width: 160px;
+      height: 8px;
+      background: #29292e;
+      border-radius: 4px;
       outline: none;
       cursor: pointer;
     }
@@ -45,8 +65,8 @@
     input[type="range"]::-webkit-slider-thumb {
       -webkit-appearance: none;
       appearance: none;
-      width: 16px;
-      height: 16px;
+      width: 18px;
+      height: 18px;
       border-radius: 50%;
       background: #00e676;
       cursor: pointer;
@@ -58,18 +78,99 @@
     }
 
     input[type="range"]::-moz-range-thumb {
-      width: 16px;
-      height: 16px;
+      width: 18px;
+      height: 18px;
       border-radius: 50%;
       background: #00e676;
       border: none;
       cursor: pointer;
     }
+
+    /* Container do Timer */
+    .timer-card {
+      background-color: #1e1e24;
+      border: 1px solid #29292e;
+      border-radius: 16px;
+      padding: 30px;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      gap: 20px;
+      box-shadow: 0 8px 30px rgba(0, 0, 0, 0.6);
+    }
+
+    .circle-container {
+      position: relative;
+      width: 160px;
+      height: 160px;
+    }
+
+    .circle-bg {
+      fill: none;
+      stroke: #29292e;
+      stroke-width: 10;
+    }
+
+    .circle-progress {
+      fill: none;
+      stroke: #00e676;
+      stroke-width: 10;
+      stroke-linecap: round;
+      transform: rotate(-90deg);
+      transform-origin: 50% 50%;
+      stroke-dasharray: 440;
+      stroke-dashoffset: 0;
+      transition: stroke-dashoffset 0.1s linear;
+    }
+
+    .timer-text {
+      position: absolute;
+      top: 50%;
+      left: 50%;
+      transform: translate(-50%, -50%);
+      font-size: 36px;
+      font-weight: bold;
+      color: #ffffff;
+    }
+
+    /* Botões de Ação */
+    .button-group {
+      display: flex;
+      gap: 12px;
+    }
+
+    .btn {
+      padding: 10px 20px;
+      font-size: 14px;
+      font-weight: 600;
+      border: none;
+      border-radius: 8px;
+      cursor: pointer;
+      transition: opacity 0.2s ease, transform 0.1s ease;
+    }
+
+    .btn:active {
+      transform: scale(0.96);
+    }
+
+    .btn-primary {
+      background-color: #00e676;
+      color: #09090a;
+    }
+
+    .btn-secondary {
+      background-color: #29292e;
+      color: #e1e1e6;
+    }
+
+    .btn:hover {
+      opacity: 0.9;
+    }
   </style>
 </head>
 <body>
 
-  <!-- Componente de Controle de Volume -->
+  <!-- Componente de Controle de Volume (Escala 15 a 0) -->
   <div class="audio-control-container">
     <label for="volumeSlider">Volume:</label>
     <input 
@@ -83,44 +184,130 @@
     <span id="volumeDisplay" class="volume-display">15</span>
   </div>
 
-  <!-- Elemento de Áudio (Substitua 'seu-audio.mp3' pelo caminho do seu arquivo) -->
-  <audio id="meuAudio" src="seu-audio.mp3" preload="auto"></audio>
+  <!-- Componente Visual do Timer -->
+  <div class="timer-card">
+    <div class="circle-container">
+      <svg width="160" height="160">
+        <circle class="circle-bg" cx="80" cy="80" r="70"></circle>
+        <circle id="circleProgress" class="circle-progress" cx="80" cy="80" r="70"></circle>
+      </svg>
+      <div id="timerDisplay" class="timer-text">5</div>
+    </div>
+
+    <div class="button-group">
+      <button id="startBtn" class="btn btn-primary">Iniciar / Reiniciar</button>
+      <button id="stopBtn" class="btn btn-secondary">Parar</button>
+    </div>
+  </div>
+
+  <!-- Elemento de Áudio sintetizado via Data URI (Apito curto de alerta) -->
+  <audio id="meuAudio" preload="auto">
+    <source src="data:audio/wav;base64,UklGRl9vAABXQVZFZm10IBAAAAABAAEAQB8AAEAfAAABAAgAZGF0YUtvAAB4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4" type="audio/wav">
+  </audio>
 
   <script>
     document.addEventListener('DOMContentLoaded', () => {
+      // --- ELEMENTOS DO DOM ---
       const audio = document.getElementById('meuAudio');
       const volumeSlider = document.getElementById('volumeSlider');
       const volumeDisplay = document.getElementById('volumeDisplay');
+      const timerDisplay = document.getElementById('timerDisplay');
+      const circleProgress = document.getElementById('circleProgress');
+      const startBtn = document.getElementById('startBtn');
+      const stopBtn = document.getElementById('stopBtn');
 
-      // 1. Carrega o volume salvo no localStorage (se existir), caso contrário usa 15 como padrão
+      // --- CONFIGURAÇÃO DO TIMER (5 Segundos) ---
+      const TOTAL_TIME = 5;
+      const CIRCUMFERENCE = 2 * Math.PI * 70; // 2 * pi * r (r=70)
+      let timerInterval = null;
+      let timeRemaining = TOTAL_TIME;
+
+      circleProgress.style.strokeDasharray = CIRCUMFERENCE;
+
+      // --- GERENCIAMENTO DE VOLUME (15 a 0) ---
+      // 1. Recupera valor salvo no localStorage ou usa 15 como padrão
       const volumeSalvo = localStorage.getItem('app_audio_volume');
       const volumeInicial = volumeSalvo !== null ? parseInt(volumeSalvo, 10) : 15;
 
-      // 2. Aplica o volume inicial nos elementos
-      atualizarVolume(volumeInicial);
+      // 2. Aplica volume e atualiza UI
+      function aplicarVolume(nivel) {
+        const nivelValido = Math.max(0, Math.min(15, nivel));
+        volumeSlider.value = nivelValido;
+        volumeDisplay.textContent = nivelValido;
 
-      // 3. Evento para capturar a mudança de volume em tempo real
+        // Converte a escala de 0..15 para a escala do elemento Audio (0.0 a 1.0)
+        audio.volume = nivelValido / 15;
+      }
+
+      aplicarVolume(volumeInicial);
+
+      // Evento de alteração no slider de volume
       volumeSlider.addEventListener('input', (e) => {
         const novoVolume = parseInt(e.target.value, 10);
-        atualizarVolume(novoVolume);
-        // Persiste a escolha do usuário
+        aplicarVolume(novoVolume);
         localStorage.setItem('app_audio_volume', novoVolume);
       });
 
-      // Função responsável por converter a escala 0-15 e aplicar ao elemento de áudio
-      function atualizarVolume(nivel) {
-        // Garante que o valor fique dentro dos limites 0 e 15
-        const nivelValidado = Math.max(0, Math.min(15, nivel));
-        
-        // Atualiza a posição do slider e a label visual
-        volumeSlider.value = nivelValidado;
-        volumeDisplay.textContent = nivelValidado;
-
-        // Converte a escala de 0..15 para a escala do HTML5 (0.0 até 1.0)
-        audio.volume = nivelValidado / 15;
+      // --- LÓGICA DO TIMER E ANIMAÇÃO ---
+      function updateProgress(secondsLeft) {
+        const progressRatio = secondsLeft / TOTAL_TIME;
+        // Atualiza a borda em sentido horário
+        const offset = CIRCUMFERENCE * (1 - progressRatio);
+        circleProgress.style.strokeDashoffset = offset;
+        timerDisplay.textContent = Math.ceil(secondsLeft);
       }
+
+      function playSound() {
+        if (audio.volume > 0) {
+          audio.currentTime = 0;
+          audio.play().catch(() => {
+            // Caso o navegador exija interação antes de reproduzir áudio
+          });
+        }
+      }
+
+      function startTimer() {
+        stopTimer();
+        timeRemaining = TOTAL_TIME;
+        updateProgress(timeRemaining);
+
+        const startTime = Date.now();
+        const endTime = startTime + (TOTAL_TIME * 1000);
+
+        timerInterval = setInterval(() => {
+          const now = Date.now();
+          const remainingMs = Math.max(0, endTime - now);
+          timeRemaining = remainingMs / 1000;
+
+          updateProgress(timeRemaining);
+
+          if (remainingMs <= 0) {
+            stopTimer();
+            playSound();
+            // Reinicia automaticamente o ciclo do timer
+            startTimer();
+          }
+        }, 50);
+      }
+
+      function stopTimer() {
+        if (timerInterval) {
+          clearInterval(timerInterval);
+          timerInterval = null;
+        }
+      }
+
+      // --- EVENTOS DOS BOTÕES ---
+      startBtn.addEventListener('click', () => {
+        startTimer();
+      });
+
+      stopBtn.addEventListener('click', () => {
+        stopTimer();
+        timeRemaining = TOTAL_TIME;
+        updateProgress(TOTAL_TIME);
+      });
     });
   </script>
-
 </body>
 </html>
