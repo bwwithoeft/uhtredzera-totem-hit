@@ -9,32 +9,33 @@ function initAudio() {
     }
 }
 
-function playBeep() {
+function playBeep(volumeLevel) {
     initAudio();
     if (!audioCtx) return;
+    var vol = (volumeLevel !== undefined) ? volumeLevel : 1.0;
     var osc = audioCtx.createOscillator();
     var gain = audioCtx.createGain();
     osc.frequency.setValueAtTime(880, audioCtx.currentTime);
     osc.connect(gain);
     gain.connect(audioCtx.destination);
     osc.start();
-    gain.gain.setValueAtTime(0.1, audioCtx.currentTime);
+    gain.gain.setValueAtTime(0.1 * vol, audioCtx.currentTime);
     gain.gain.exponentialRampToValueAtTime(0.00001, audioCtx.currentTime + 0.15);
     osc.stop(audioCtx.currentTime + 0.15);
 }
 
-function playDoubleBeep() {
-    playBeep();
-    setTimeout(playBeep, 200);
+function playDoubleBeep(volumeLevel) {
+    playBeep(volumeLevel);
+    setTimeout(function() { playBeep(volumeLevel); }, 200);
 }
 
-function speak(text) {
+function speak(text, volumeLevel) {
     if ('speechSynthesis' in window) {
         window.speechSynthesis.cancel(); 
         var msg = new SpeechSynthesisUtterance(text);
         msg.lang = 'pt-BR';
         msg.rate = 1.3;
-        msg.volume = 1.0;
+        msg.volume = (volumeLevel !== undefined) ? volumeLevel : 1.0;
         window.speechSynthesis.speak(msg);
     }
 }
@@ -59,6 +60,7 @@ window.switchTab = function(tabName) {
     if(tabName === 'peixinho') btns[4].classList.add('active');
 };
 
+// --- TOTEM ---
 var totemCycle = 5700; 
 var sequence = ['north', 'right', 'south', 'left'];
 var totemStart = null;
@@ -132,6 +134,7 @@ window.stopTotem = function() {
     resetTotemVisuals();
 };
 
+// --- BOSS ---
 var bossCycle = 90000; 
 var bossStart = null;
 var bossInterval = null;
@@ -224,6 +227,7 @@ window.stopBoss = function() {
     if(bossBar) bossBar.style.transform = "scaleX(0)";
 };
 
+// --- RARE CHECK ---
 var rareInterval = null;
 var rareSchedule = [];
 var nextRareIndex = 0;
@@ -332,6 +336,7 @@ window.stopRareCheck = function() {
     if(container) container.innerHTML = '';
 };
 
+// --- POTION ---
 var potionCycle = 600000; 
 var potionStart = null;
 var potionInterval = null;
@@ -378,7 +383,7 @@ function updatePotion() {
     }
 }
 
-function startPotion() {
+window.startPotion = function() {
     initAudio();
     if (potionRunning) stopPotion();
     potionRunning = true;
@@ -387,9 +392,9 @@ function startPotion() {
     
     updatePotion();
     potionInterval = setInterval(updatePotion, 250); 
-}
+};
 
-function stopPotion() {
+window.stopPotion = function() {
     potionRunning = false;
     clearInterval(potionInterval);
     potionLastSpoken = -1;
@@ -399,53 +404,54 @@ function stopPotion() {
         potionEl.style.borderColor = "var(--border-color)";
     }
     if (potionBar) potionBar.style.transform = "scaleX(0)";
-}
+};
 
-window.startPotion = startPotion;
-window.stopPotion = stopPotion;
-
-/* ==========================================================================
-   LÓGICA PEIXINHO (2 MINUTOS COM ÁUDIO NOS ÚLTIMOS 15 SECS E LOOP AUTOMÁTICO)
-   ========================================================================== */
-var peixinhoCycle = 120000; // 2 minutos em milissegundos
+// --- PEIXINHO ---
+var peixinhoCycle = 120000; 
 var peixinhoStart = null;
 var peixinhoInterval = null;
 var peixinhoRunning = false;
-var peixinhoLastReset = -1;
 var peixinhoLastSpoken = -1;
+var peixinhoVolume = 1.0;
 
 var peixinhoEl = document.getElementById('peixinho-countdown');
 var peixinhoBar = document.getElementById('peixinho-progress');
 
+window.updatePeixinhoVolume = function(val) {
+    peixinhoVolume = parseFloat(val);
+    var percentDisplay = document.getElementById('peixinho-vol-value');
+    if (percentDisplay) {
+        percentDisplay.textContent = Math.round(peixinhoVolume * 100) + "%";
+    }
+};
+
 function updatePeixinho() {
     var now = Date.now();
     var elapsed = now - peixinhoStart;
-    var remaining = peixinhoCycle - (elapsed % peixinhoCycle);
-    var currentCycle = Math.floor(elapsed / peixinhoCycle);
 
-    // Tratamento de reinício do ciclo (Loop contínuo)
-    if (currentCycle > peixinhoLastReset) {
-        if (peixinhoLastReset !== -1) {
-            playDoubleBeep();
-        }
-        peixinhoLastReset = currentCycle;
+    if (elapsed >= peixinhoCycle) {
+        playDoubleBeep(peixinhoVolume);
+        speak("Peixinho!", peixinhoVolume);
+        peixinhoStart = Date.now();
         peixinhoLastSpoken = -1;
+        elapsed = 0;
     }
+
+    var remaining = peixinhoCycle - elapsed;
 
     if (peixinhoEl) peixinhoEl.textContent = formatTime(remaining);
     if (peixinhoBar) peixinhoBar.style.transform = "scaleX(" + ((peixinhoCycle - remaining) / peixinhoCycle) + ")";
 
     var secondsLeft = Math.ceil(remaining / 1000);
 
-    // Inicia contagem por áudio nos últimos 15 segundos
     if (remaining <= 15900) {
         if (peixinhoEl) {
-            peixinhoEl.style.color = "var(--neon-green)";
-            peixinhoEl.style.borderColor = "var(--neon-green)";
+            peixinhoEl.style.color = "var(--neon-amber)";
+            peixinhoEl.style.borderColor = "var(--neon-amber)";
         }
 
         if (secondsLeft <= 15 && secondsLeft > 0 && secondsLeft !== peixinhoLastSpoken) {
-            speak(secondsLeft.toString());
+            speak(secondsLeft.toString(), peixinhoVolume);
             peixinhoLastSpoken = secondsLeft;
         }
     } else {
@@ -461,19 +467,17 @@ window.startPeixinho = function() {
     if (peixinhoRunning) stopPeixinho();
     peixinhoRunning = true;
     peixinhoStart = Date.now();
-    peixinhoLastReset = -1;
     peixinhoLastSpoken = -1;
 
     updatePeixinho();
-    peixinhoInterval = setInterval(updatePeixinho, 100);
+    peixinhoInterval = setInterval(updatePeixinho, 250);
 };
 
 window.stopPeixinho = function() {
     peixinhoRunning = false;
     clearInterval(peixinhoInterval);
-    if ('speechSynthesis' in window) window.speechSynthesis.cancel();
     peixinhoLastSpoken = -1;
-    peixinhoLastReset = -1;
+    if ('speechSynthesis' in window) window.speechSynthesis.cancel();
     if (peixinhoEl) {
         peixinhoEl.textContent = "02:00";
         peixinhoEl.style.color = "#fff";
