@@ -64,11 +64,40 @@ window.switchTab = function(tabName) {
     if(tabName === 'peixinho') btns[4].classList.add('active');
 };
 
+// --- WEB WORKER PARA BACKGROUND (Evita Throttling quando minimizado) ---
+var workerCode = `
+    var timers = {};
+    self.onmessage = function(e) {
+        var data = e.data;
+        if (data.action === 'start') {
+            if (timers[data.name]) clearInterval(timers[data.name]);
+            timers[data.name] = setInterval(function() {
+                self.postMessage({ name: data.name });
+            }, data.interval);
+        } else if (data.action === 'stop') {
+            if (timers[data.name]) {
+                clearInterval(timers[data.name]);
+                delete timers[data.name];
+            }
+        }
+    };
+`;
+var blob = new Blob([workerCode], { type: 'application/javascript' });
+var bgWorker = new Worker(URL.createObjectURL(blob));
+
+bgWorker.onmessage = function(e) {
+    var name = e.data.name;
+    if (name === 'totem' && totemRunning) updateTotem();
+    if (name === 'boss' && bossRunning) updateBoss();
+    if (name === 'rare' && rareRunning) checkRareTime();
+    if (name === 'potion' && potionRunning) updatePotion();
+    if (name === 'peixinho' && peixinhoRunning) updatePeixinho();
+};
+
 // --- TOTEM ---
 var totemCycle = 5700; 
 var sequence = ['north', 'right', 'south', 'left'];
 var totemStart = null;
-var totemInterval = null;
 var totemRunning = false;
 var totemLastBeep = -1;
 
@@ -129,19 +158,18 @@ window.startTotem = function() {
     totemRunning = true;
     totemStart = Date.now();
     totemLastBeep = -1;
-    totemInterval = setInterval(updateTotem, 50);
+    bgWorker.postMessage({ action: 'start', name: 'totem', interval: 50 });
 };
 
 window.stopTotem = function() {
     totemRunning = false;
-    clearInterval(totemInterval);
+    bgWorker.postMessage({ action: 'stop', name: 'totem' });
     resetTotemVisuals();
 };
 
 // --- BOSS ---
 var bossCycle = 90000; 
 var bossStart = null;
-var bossInterval = null;
 var bossRunning = false;
 var bossLastReset = -1;
 var bossLastSpoken = -1; 
@@ -215,12 +243,12 @@ window.startBoss = function() {
     bossLastSpoken = -1;
     
     updateBoss();
-    bossInterval = setInterval(updateBoss, 100);
+    bgWorker.postMessage({ action: 'start', name: 'boss', interval: 100 });
 };
 
 window.stopBoss = function() {
     bossRunning = false;
-    clearInterval(bossInterval);
+    bgWorker.postMessage({ action: 'stop', name: 'boss' });
     if ('speechSynthesis' in window) window.speechSynthesis.cancel();
     document.body.classList.remove('flash-red');
     if(bossEl) {
@@ -232,7 +260,7 @@ window.stopBoss = function() {
 };
 
 // --- RARE CHECK ---
-var rareInterval = null;
+var rareRunning = false;
 var rareSchedule = [];
 var nextRareIndex = 0;
 
@@ -325,11 +353,13 @@ window.startRareCheck = function() {
     }
 
     renderSchedule();
-    rareInterval = setInterval(checkRareTime, 500); 
+    rareRunning = true;
+    bgWorker.postMessage({ action: 'start', name: 'rare', interval: 500 });
 };
 
 window.stopRareCheck = function() {
-    clearInterval(rareInterval);
+    rareRunning = false;
+    bgWorker.postMessage({ action: 'stop', name: 'rare' });
     rareSchedule = [];
     var nextDisplay = document.getElementById('next-check-time');
     var container = document.getElementById('schedule-list');
@@ -343,7 +373,6 @@ window.stopRareCheck = function() {
 // --- POTION ---
 var potionCycle = 600000; 
 var potionStart = null;
-var potionInterval = null;
 var potionRunning = false;
 var potionLastSpoken = -1;
 
@@ -395,12 +424,12 @@ window.startPotion = function() {
     potionLastSpoken = -1;
     
     updatePotion();
-    potionInterval = setInterval(updatePotion, 250); 
+    bgWorker.postMessage({ action: 'start', name: 'potion', interval: 250 });
 };
 
 window.stopPotion = function() {
     potionRunning = false;
-    clearInterval(potionInterval);
+    bgWorker.postMessage({ action: 'stop', name: 'potion' });
     potionLastSpoken = -1;
     if ('speechSynthesis' in window) window.speechSynthesis.cancel();
     if (potionEl) {
@@ -414,7 +443,6 @@ window.stopPotion = function() {
 // --- PEIXINHO ---
 var peixinhoCycle = 120000; 
 var peixinhoStart = null;
-var peixinhoInterval = null;
 var peixinhoRunning = false;
 var peixinhoLastSpoken = -1;
 var peixinhoVolume = 1.0;
@@ -450,7 +478,6 @@ function updatePeixinho() {
 
     var secondsLeft = Math.ceil(remaining / 1000);
 
-    // Dispara a contagem exatamente nos últimos 15 segundos (15 até 1)
     if (remaining <= 15900) {
         if (peixinhoEl) {
             peixinhoEl.style.color = "var(--neon-amber)";
@@ -477,12 +504,12 @@ window.startPeixinho = function() {
     peixinhoLastSpoken = -1;
 
     updatePeixinho();
-    peixinhoInterval = setInterval(updatePeixinho, 250);
+    bgWorker.postMessage({ action: 'start', name: 'peixinho', interval: 250 });
 };
 
 window.stopPeixinho = function() {
     peixinhoRunning = false;
-    clearInterval(peixinhoInterval);
+    bgWorker.postMessage({ action: 'stop', name: 'peixinho' });
     peixinhoLastSpoken = -1;
     if ('speechSynthesis' in window) window.speechSynthesis.cancel();
     if (peixinhoEl) {
