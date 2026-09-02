@@ -31,15 +31,13 @@ function playDoubleBeep(volumeLevel) {
 
 function speak(text, volumeLevel) {
     if ('speechSynthesis' in window) {
-        // Cancela imediatamente qualquer áudio preso na fila para evitar desincronização acumulada
         window.speechSynthesis.cancel(); 
         
         var msg = new SpeechSynthesisUtterance(text);
         msg.lang = 'pt-BR';
-        msg.rate = 1.4; // Acelera ligeiramente a fala para caber perfeitamente no intervalo de 1s
+        msg.rate = 1.4; 
         msg.volume = (volumeLevel !== undefined) ? volumeLevel : 1.0;
         
-        // Pequeno atraso para garantir o reset da API antes do novo disparo
         setTimeout(function() {
             window.speechSynthesis.speak(msg);
         }, 10);
@@ -439,7 +437,7 @@ function updatePeixinho() {
     if (elapsed >= peixinhoCycle) {
         if ('speechSynthesis' in window) window.speechSynthesis.cancel();
         playDoubleBeep(peixinhoVolume);
-        speak("Peixinho!", peixinhoVolume);
+        speak("Zerar!", peixinhoVolume);
         peixinhoStart = Date.now();
         peixinhoLastSpoken = -1;
         elapsed = 0;
@@ -452,6 +450,7 @@ function updatePeixinho() {
 
     var secondsLeft = Math.ceil(remaining / 1000);
 
+    // Dispara a contagem exatamente nos últimos 15 segundos (15 até 1)
     if (remaining <= 15900) {
         if (peixinhoEl) {
             peixinhoEl.style.color = "var(--neon-amber)";
