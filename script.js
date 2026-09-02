@@ -31,12 +31,18 @@ function playDoubleBeep(volumeLevel) {
 
 function speak(text, volumeLevel) {
     if ('speechSynthesis' in window) {
+        // Cancela imediatamente qualquer áudio preso na fila para evitar desincronização acumulada
         window.speechSynthesis.cancel(); 
+        
         var msg = new SpeechSynthesisUtterance(text);
         msg.lang = 'pt-BR';
-        msg.rate = 1.3;
+        msg.rate = 1.4; // Acelera ligeiramente a fala para caber perfeitamente no intervalo de 1s
         msg.volume = (volumeLevel !== undefined) ? volumeLevel : 1.0;
-        window.speechSynthesis.speak(msg);
+        
+        // Pequeno atraso para garantir o reset da API antes do novo disparo
+        setTimeout(function() {
+            window.speechSynthesis.speak(msg);
+        }, 10);
     }
 }
 
@@ -398,6 +404,7 @@ window.stopPotion = function() {
     potionRunning = false;
     clearInterval(potionInterval);
     potionLastSpoken = -1;
+    if ('speechSynthesis' in window) window.speechSynthesis.cancel();
     if (potionEl) {
         potionEl.textContent = "10:00";
         potionEl.style.color = "#fff";
@@ -430,6 +437,7 @@ function updatePeixinho() {
     var elapsed = now - peixinhoStart;
 
     if (elapsed >= peixinhoCycle) {
+        if ('speechSynthesis' in window) window.speechSynthesis.cancel();
         playDoubleBeep(peixinhoVolume);
         speak("Peixinho!", peixinhoVolume);
         peixinhoStart = Date.now();
